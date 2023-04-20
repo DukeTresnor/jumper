@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+//use bevy_rapier2d::{prelude::{RapierPhysicsPlugin, NoUserData}, render::RapierDebugRenderPlugin};
 use game::GamePlugin;
 use main_menu::MainMenuPlugin;
 use systems::*;
@@ -14,6 +15,9 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_state::<AppState>()
+        // Add plugins for rapier2d
+        //.add_plugin(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0))
+        //.add_plugin(RapierDebugRenderPlugin::default())
         // add plugin for Main Menu
         .add_plugin(MainMenuPlugin)
         // add plugin for Game

@@ -4,9 +4,15 @@
 //   entering and exiting AppState::Game, respectively
 
 use::bevy::prelude::*;
+use bevy::render::view::window;
+use bevy::transform::commands;
+use bevy::window::PrimaryWindow;
+//use bevy::window::PrimaryWindow;
 
 use crate::game::SimulationState;
 use crate::game::components::*;
+
+use crate::game::TILE_SIZE;
 
 pub fn toggle_simulation_state(
     // needs access to keyboard input
@@ -59,6 +65,41 @@ pub fn apply_gravity(
         // set movement to go down according to the entity's gravity constant component value
         let gravity_direction = Vec3::new(0.0, -entity_gravity.gravity_constant, 0.0);
         entity_transform.translation += gravity_direction * time.delta_seconds();
-        println!("Applying gravity");
+        //println!("Applying gravity");
+    }
+}
+
+pub fn spawn_floor(
+    mut commands: Commands,
+    window_query: Query<&Window, With<PrimaryWindow>>,
+    asset_server: Res<AssetServer>,
+) {
+    let window = window_query.get_single().unwrap();
+    let number_of_tiles_in_floor = (window.width() / TILE_SIZE) as i32;
+
+    for (i, _) in (0..number_of_tiles_in_floor+1).enumerate() {
+        let i_f32 = i as f32;
+        // spawn a floor tile
+        commands.spawn(
+    (
+                SpriteBundle {
+                    transform: Transform::from_xyz(i_f32 * TILE_SIZE, 0.0, 0.0),
+                    texture: asset_server.load("sprites/tile_0000.png"),
+                    ..default()
+                },
+                Floor {},
+            )
+        );
+        println!("Spawning floor");
+    }
+
+}
+
+pub fn despawn_floor(
+    mut commands: Commands,
+    floor_query: Query<Entity, With<Floor>>,
+) {
+    for floor_entity in floor_query.iter() {
+        commands.entity(floor_entity).despawn();
     }
 }
