@@ -21,16 +21,29 @@ pub struct PlayerPlugin;
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app
+            .add_state::<PlayerState>()
             .add_system(spawn_player.in_schedule(OnEnter(AppState::Game)))
             .add_systems(
                 (
                     player_movement,
                     confine_player_movement,
                     temp_player_up_movement,
+                    ground_check,
+                    //force_player_to_ground, <-- this system doesn't work right now
                 )
                 .in_set(OnUpdate(AppState::Game))
                 .in_set(OnUpdate(SimulationState::Running))
             )
+            .add_systems(
+                (
+                    player_jump,
+                )
+            
+                .in_set(OnUpdate(AppState::Game))
+                .in_set(OnUpdate(SimulationState::Running))
+                .in_set(OnUpdate(PlayerState::Grounded))
+            )
+            //.add_system(ground_check.run_if(in_state(AppState::Game)))
             .add_system(despawn_player.in_schedule(OnExit(AppState::Game)))
             ;
     }

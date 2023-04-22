@@ -28,11 +28,17 @@ pub fn spawn_player(
                 ..default()
             },
             Player {},
-            Gravity {
-                gravity_constant: GRAVITY,
+            //Gravity {
+            //    gravity_constant: GRAVITY,
+            //},
+            EntitySizeCollision {
+                horizontal_entity_size: PLAYER_SIZE,
+                vertical_entity_size: PLAYER_SIZE,
             },
-            //BoundingBox {
-            //}
+            JumpVelocity {
+                horizontal_velocity: 0.0,
+                vertical_velocity: 0.0,
+            }
         )
     );
 }
@@ -101,6 +107,33 @@ pub fn temp_player_up_movement(
 // temporary //
 
 
+// this doens't work how I want either, but it's a start
+pub fn player_jump(
+    keyboard_input: Res<Input<KeyCode>>,
+    mut player_query: Query<(&mut Transform, &mut JumpVelocity), With<Player>>,
+    time: Res<Time>,
+) {
+    if let Ok((mut transform, mut jump_velocity)) = player_query.get_single_mut() {
+        let up_direction = Vec3::new(0.0, 1.0, 0.0);
+
+        if keyboard_input.just_pressed(KeyCode::Space) {
+            jump_velocity.vertical_velocity += PLAYER_SPEED;
+            println!("{}", jump_velocity.vertical_velocity);
+        }
+        transform.translation += up_direction * jump_velocity.vertical_velocity * time.delta_seconds()
+            - GRAVITY * time.delta_seconds() * time.delta_seconds();
+        
+        
+        if jump_velocity.vertical_velocity > 0.0 {
+            jump_velocity.vertical_velocity -= GRAVITY;
+        }
+
+
+    }
+}
+
+
+
 pub fn confine_player_movement(
     mut player_query: Query<&mut Transform, With<Player>>,
     window_query: Query<&Window, With<PrimaryWindow>>,
@@ -135,12 +168,53 @@ pub fn confine_player_movement(
 
 // Check if the player is grounded
 pub fn ground_check(
-    player_query: Query<Entity, With<Player>>,
-    window_query: Query<&Window, With<PrimaryWindow>>,
+    player_query: Query<(&Transform, &EntitySizeCollision), With<Player>>,
+    floor_query: Query<(&Transform, &EntitySizeCollision), With<Floor>>,
     player_state: Res<State<PlayerState>>,
-    mut next_player_state: ResMut<State<PlayerState>>,
+    mut next_player_state: ResMut<NextState<PlayerState>>,
 ) {
-    if let Ok(player_entity) = player_query.get_single() {
-        //
+    if let Ok((player_transform, player_collision)) = player_query.get_single() {
+        for (floor_transform, floor_collision) in floor_query.iter() {
+            // check collision get boolean
+            //let distance = player_transform.translation.distance(floor_transform.translation);
+            let horizontal_distance = player_transform.translation.x - floor_transform.translation.x;
+            let vertical_distance = player_transform.translation.y - floor_transform.translation.y;
+            let horizontal_player_length = player_collision.horizontal_entity_size / 2.0;
+            let vertical_player_length = player_collision.vertical_entity_size / 2.0;
+            let horizontal_floor_length = floor_collision.horizontal_entity_size / 2.0;
+            let vertical_floor_length = floor_collision.vertical_entity_size / 2.0;
+            if 
+            horizontal_distance < horizontal_player_length + horizontal_floor_length &&
+            vertical_distance < vertical_player_length + vertical_floor_length {
+            // if boolean is true {}            
+                if player_state.0 == PlayerState::Air {
+                    // switch to ground state
+                    next_player_state.set(PlayerState::Grounded);
+                    //println!("I'm grounded");
+                }
+            } else {
+            // if boolean is false ()
+                if player_state.0 == PlayerState::Grounded {
+                    // switch to air state
+                    next_player_state.set(PlayerState::Air);
+                }
+            }
+        }
+    }
+}
+
+
+// make a new system that, when the player is grounded, sets their y position to the floor's y position
+pub fn force_player_to_ground(
+    mut player_query: Query<(&mut Transform, &EntitySizeCollision), With<Player>>,
+    floor_query: Query<&Transform, With<Floor>>,
+    player_state: Res<State<PlayerState>>,
+) {
+    if let Ok((mut player_transform, player_collision)) = player_query.get_single_mut() {
+        for floor_transform in floor_query.iter() {
+            if player_state.0 == PlayerState::Grounded {
+                player_transform.translation.y = floor_transform.translation.y;
+            }
+        }
     }
 }

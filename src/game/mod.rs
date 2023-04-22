@@ -5,7 +5,7 @@
 
 mod systems;
 mod components;
-
+pub mod resources;
 mod player;
 
 use bevy::prelude::*;
