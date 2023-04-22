@@ -11,6 +11,7 @@ use bevy::window::PrimaryWindow;
 
 use crate::game::SimulationState;
 use crate::game::components::*;
+use crate::game::resources::*;
 
 use crate::game::TILE_SIZE;
 
@@ -69,6 +70,14 @@ pub fn apply_gravity(
     }
 }
 
+
+
+
+
+
+
+// Floor Systems //
+
 pub fn spawn_floor(
     mut commands: Commands,
     window_query: Query<&Window, With<PrimaryWindow>>,
@@ -88,6 +97,10 @@ pub fn spawn_floor(
                     ..default()
                 },
                 Floor {},
+                EntitySizeCollision {
+                    horizontal_entity_size: TILE_SIZE,
+                    vertical_entity_size: TILE_SIZE,
+                }
             )
         );
         println!("Spawning floor");
@@ -103,3 +116,5 @@ pub fn despawn_floor(
         commands.entity(floor_entity).despawn();
     }
 }
+
+// Floor Systems //

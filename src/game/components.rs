@@ -21,3 +21,10 @@ pub struct BoundingBox {
     pub z_min: f32,
     pub z_max: f32,
 }
+
+
+#[derive(Component)]
+pub struct EntitySizeCollision {
+    pub horizontal_entity_size: f32,
+    pub vertical_entity_size: f32,
+}
