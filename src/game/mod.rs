@@ -9,14 +9,12 @@ pub mod resources;
 mod player;
 
 use bevy::prelude::*;
-//use bevy_rapier2d::prelude::*;
 
 use player::PlayerPlugin;
 
 // use crate::etc. for when trying to access files at a higher level
 use crate::AppState;
 use crate::events::GameOver;
-
 
 // access everything in game/systems.rs
 use systems::*;
@@ -42,7 +40,8 @@ impl Plugin for GamePlugin {
             .add_plugin(PlayerPlugin)
             .add_systems(
                 (
-                    apply_gravity,
+                    animate_sprite,
+                    apply_gravity_and_velocity,
                 )
             
                 .in_set(OnUpdate(AppState::Game))
