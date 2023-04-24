@@ -33,7 +33,6 @@ pub fn spawn_camera(
             ..default()
         },
     );
-    //println!("I spawned a camera");
 }
 
 pub fn transition_to_game_state(

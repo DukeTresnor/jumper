@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-//use bevy_rapier2d::{prelude::{RapierPhysicsPlugin, NoUserData}, render::RapierDebugRenderPlugin};
+use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 use game::GamePlugin;
 use main_menu::MainMenuPlugin;
 use systems::*;
@@ -13,11 +13,12 @@ pub mod events;
 
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins)
+        .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
         .add_state::<AppState>()
-        // Add plugins for rapier2d
-        //.add_plugin(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0))
-        //.add_plugin(RapierDebugRenderPlugin::default())
+        // Plugins for framerate in the console
+        //.add_plugin(LogDiagnosticsPlugin::default())
+        //.add_plugin(FrameTimeDiagnosticsPlugin::default())
+        // Plugins for framerate in the console
         // add plugin for Main Menu
         .add_plugin(MainMenuPlugin)
         // add plugin for Game
@@ -25,7 +26,6 @@ fn main() {
         // add system for spawning camera
         .add_startup_system(spawn_camera)
         // add transition systems for changing states:
-        //    add transition to game state
         .add_system(transition_to_game_state)
         //    add transition to main menu
         .add_system(transition_to_main_menu_state)
