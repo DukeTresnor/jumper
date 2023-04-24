@@ -12,3 +12,8 @@ pub struct JumpVelocity {
     pub horizontal_velocity: f32,
     pub vertical_velocity: f32,
 }
+
+#[derive(Component)]
+pub struct ActionStateVector {
+    pub action_vector: Vec<KeyCode>,
+}

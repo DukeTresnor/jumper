@@ -4,16 +4,16 @@
 //   entering and exiting AppState::Game, respectively
 
 use::bevy::prelude::*;
-use bevy::render::view::window;
-use bevy::transform::commands;
 use bevy::window::PrimaryWindow;
 //use bevy::window::PrimaryWindow;
 
 use crate::game::SimulationState;
 use crate::game::components::*;
-use crate::game::resources::*;
+//use crate::game::resources::*;
 
 use crate::game::TILE_SIZE;
+
+use super::player::components::JumpVelocity;
 
 pub fn toggle_simulation_state(
     // needs access to keyboard input
@@ -54,24 +54,33 @@ pub fn resume_simulation(
 }
 
 
-// Applies "gravity" to any entity that has the gravity component
-//   gravity is a component that exists in the game folder
-// We also need to use a time resource
-pub fn apply_gravity(
-    //mut entity_query: Query<Entity, With<Gravity>>,
-    mut transform_gravity_query: Query<(&mut Transform, &Gravity)>,
+// ------- //
+
+pub fn apply_gravity_and_velocity(
+    mut transform_gravity_velocity_query: Query<(&mut Transform, &Gravity, &mut JumpVelocity)>,
     time: Res<Time>,
 ) {
-    for (mut entity_transform, entity_gravity) in transform_gravity_query.iter_mut() {
-        // set movement to go down according to the entity's gravity constant component value
+    for (mut entity_transform, entity_gravity, mut entity_velocity) in transform_gravity_velocity_query.iter_mut() {
+        // refine code, edit out later once you solidify on the constants you want
+        let temp_vel_mod = 10.0;
+        
         let gravity_direction = Vec3::new(0.0, -entity_gravity.gravity_constant, 0.0);
-        entity_transform.translation += gravity_direction * time.delta_seconds();
+        let velocity_direction = Vec3::new(entity_velocity.horizontal_velocity, entity_velocity.vertical_velocity, 0.0);
+        entity_transform.translation += temp_vel_mod * velocity_direction * time.delta_seconds() + gravity_direction * time.delta_seconds();
         //println!("Applying gravity");
+
+        // reduce velocity over time
+        if entity_velocity.vertical_velocity > 0.0 {
+            entity_velocity.vertical_velocity -= entity_gravity.gravity_constant;
+        } else {
+            entity_velocity.vertical_velocity = 0.0;
+        }
+
+        //println!("Printing vertical velocity: {}", entity_velocity.vertical_velocity);
     }
 }
 
-
-
+// ------- //
 
 
 
@@ -118,3 +127,35 @@ pub fn despawn_floor(
 }
 
 // Floor Systems //
+
+
+// Animate sprite //
+
+// Needs a time resource
+// Needs a mutable query to AnimationIndices to get the entity's spritesheet's first and last desired sprite,
+//   to a mutable AnimationTimer 
+pub fn animate_sprite(
+    time: Res<Time>,
+    mut animation_query: Query<(
+        &AnimationIndices, 
+        &mut AnimationTimer,
+        &mut TextureAtlasSprite,
+    )>
+) {
+    for (animation_indices, mut timer, mut sprite_sheet) in animation_query.iter_mut() {
+        timer.tick(time.delta());
+        // If the timer is finished, force the sprite sheet to be at
+        //   the next sprite in the sheet. If you are at the last sprite in the
+        //   sheet, go to the first sprite so it loops
+        if timer.just_finished() {
+            sprite_sheet.index = if sprite_sheet.index == animation_indices.last {
+                animation_indices.first
+            } else {
+                sprite_sheet.index + 1
+            }
+        }
+    }
+}
+
+
+// Animate sprite //

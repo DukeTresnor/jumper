@@ -1,6 +1,7 @@
 // game/player/systems.rs
 
 
+use bevy::a11y::accesskit::Action;
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 
@@ -14,23 +15,42 @@ pub fn spawn_player(
     mut commands: Commands,
     window_query: Query<&Window, With<PrimaryWindow>>,
     asset_server: Res<AssetServer>,
+    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
 ) {
     // Access the primary window
     let window = window_query.get_single().unwrap();
-    // Create a player component
+
+    //let sprite_sheet_handle = asset_server.load("sprites/lenneth/idle_anim/idle_spritesheet.png");    
+    // Something is off, not working...
+    let texture_atlas = 
+        TextureAtlas::from_grid(
+            asset_server.load("sprites/lenneth/idle_anim/idle_spritesheet.png"),
+            // Inputs here are the size of each individual sprite inside the spritesheet
+            Vec2::new(64.0, 64.0), 12, 1, None, None
+        );
+    let texture_atlas_handle = texture_atlases.add(texture_atlas);
+    let animation_indices = AnimationIndices { first: 0, last: 11 };
+    
     // spawn a Player with the Player and Gravity components
     commands.spawn(
         (
-            SpriteBundle {
+            //SpriteBundle {
+            //    transform: Transform::from_xyz(window.width() / 2.0, window.height() / 2.0, 0.0),
+            //    // the sprite bundle has a texture using the load() method
+            //    //texture: asset_server.load("sprites/ball_blue_large.png"),
+            //    texture: asset_server.load("sprites/lenneth_test.png"),
+            //    ..default()
+            //},
+            SpriteSheetBundle {
                 transform: Transform::from_xyz(window.width() / 2.0, window.height() / 2.0, 0.0),
-                // the sprite bundle has a texture using the load() method
-                texture: asset_server.load("sprites/ball_blue_large.png"),
+                texture_atlas: texture_atlas_handle,
+                sprite: TextureAtlasSprite::new(animation_indices.first),
                 ..default()
             },
             Player {},
-            //Gravity {
-            //    gravity_constant: GRAVITY,
-            //},
+            Gravity {
+                gravity_constant: GRAVITY,
+            },
             EntitySizeCollision {
                 horizontal_entity_size: PLAYER_SIZE,
                 vertical_entity_size: PLAYER_SIZE,
@@ -38,6 +58,9 @@ pub fn spawn_player(
             JumpVelocity {
                 horizontal_velocity: 0.0,
                 vertical_velocity: 0.0,
+            },
+            ActionStateVector {
+                action_vector: Vec::new(),
             }
         )
     );
@@ -107,28 +130,24 @@ pub fn temp_player_up_movement(
 // temporary //
 
 
-// this doens't work how I want either, but it's a start
 pub fn player_jump(
     keyboard_input: Res<Input<KeyCode>>,
-    mut player_query: Query<(&mut Transform, &mut JumpVelocity), With<Player>>,
-    time: Res<Time>,
+    mut player_query: Query<(&mut Transform, &mut JumpVelocity, &mut ActionStateVector), With<Player>>,
+    //time: Res<Time>,
 ) {
-    if let Ok((mut transform, mut jump_velocity)) = player_query.get_single_mut() {
-        let up_direction = Vec3::new(0.0, 1.0, 0.0);
+    if let Ok((mut transform, mut jump_velocity, mut action_state_vector)) = player_query.get_single_mut() {
+        //let up_direction = Vec3::new(0.0, 1.0, 0.0);
 
         if keyboard_input.just_pressed(KeyCode::Space) {
-            jump_velocity.vertical_velocity += PLAYER_SPEED;
-            println!("{}", jump_velocity.vertical_velocity);
+            println!("I just jumped");
+            jump_velocity.vertical_velocity = PLAYER_SPEED;
+            //println!("{}", jump_velocity.vertical_velocity);
+            action_state_vector.action_vector.push(KeyCode::Space);
         }
-        transform.translation += up_direction * jump_velocity.vertical_velocity * time.delta_seconds()
-            - GRAVITY * time.delta_seconds() * time.delta_seconds();
+        //transform.translation += up_direction * jump_velocity.vertical_velocity * time.delta_seconds()
+        //    - GRAVITY * time.delta_seconds() * time.delta_seconds();
         
         
-        if jump_velocity.vertical_velocity > 0.0 {
-            jump_velocity.vertical_velocity -= GRAVITY;
-        }
-
-
     }
 }
 
@@ -183,20 +202,22 @@ pub fn ground_check(
             let vertical_player_length = player_collision.vertical_entity_size / 2.0;
             let horizontal_floor_length = floor_collision.horizontal_entity_size / 2.0;
             let vertical_floor_length = floor_collision.vertical_entity_size / 2.0;
-            if 
-            horizontal_distance < horizontal_player_length + horizontal_floor_length &&
-            vertical_distance < vertical_player_length + vertical_floor_length {
+            
+            // if (horizontal_distance < horizontal_player_length + horizontal_floor_length)
+            if vertical_distance < vertical_player_length + vertical_floor_length {
+
             // if boolean is true {}            
                 if player_state.0 == PlayerState::Air {
                     // switch to ground state
                     next_player_state.set(PlayerState::Grounded);
-                    //println!("I'm grounded");
+                    println!("I'm grounded");
                 }
             } else {
             // if boolean is false ()
                 if player_state.0 == PlayerState::Grounded {
                     // switch to air state
                     next_player_state.set(PlayerState::Air);
+                    //println!("I'm in the air");
                 }
             }
         }
@@ -207,14 +228,31 @@ pub fn ground_check(
 // make a new system that, when the player is grounded, sets their y position to the floor's y position
 pub fn force_player_to_ground(
     mut player_query: Query<(&mut Transform, &EntitySizeCollision), With<Player>>,
-    floor_query: Query<&Transform, With<Floor>>,
-    player_state: Res<State<PlayerState>>,
+    floor_query: Query<(&Transform, &EntitySizeCollision), With<Floor>>,
 ) {
     if let Ok((mut player_transform, player_collision)) = player_query.get_single_mut() {
-        for floor_transform in floor_query.iter() {
-            if player_state.0 == PlayerState::Grounded {
-                player_transform.translation.y = floor_transform.translation.y;
+        for (floor_transform, floor_collision) in floor_query.iter() {
+            let vertical_distance = player_transform.translation.y - floor_transform.translation.y;
+            let vertical_player_length = player_collision.vertical_entity_size / 2.0;
+            let vertical_floor_length = floor_collision.vertical_entity_size / 2.0;
+            if vertical_distance < vertical_player_length + vertical_floor_length {
+                player_transform.translation.y = floor_transform.translation.y - player_collision.vertical_entity_size;
             }
         }
+    }
+}
+
+
+// Debug system
+pub fn debug_get_player_action_vector(
+    player_query: Query<&ActionStateVector, With<Player>>,
+    keyboard_input: Res<Input<KeyCode>>,
+) {
+    if let Ok(player_action_state_vector) = player_query.get_single() {
+        
+        if keyboard_input.just_pressed(KeyCode::L) {
+            println!("Player action state vector: {:?}", player_action_state_vector.action_vector);
+        }
+        
     }
 }
