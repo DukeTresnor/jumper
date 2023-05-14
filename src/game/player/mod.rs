@@ -38,6 +38,7 @@ impl Plugin for PlayerPlugin {
             .add_systems(
                 (
                     player_jump,
+                    player_attack,
                 )
             
                 .in_set(OnUpdate(AppState::Game))

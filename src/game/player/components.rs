@@ -15,5 +15,11 @@ pub struct JumpVelocity {
 
 #[derive(Component)]
 pub struct ActionStateVector {
-    pub action_vector: Vec<KeyCode>,
+    //pub action_vector: Vec<KeyCode>,
+    pub action_vector: Vec<(KeyCode, ActionTimerValue)>,
+}
+
+#[derive(Component)]
+pub struct ActionTimerValue {
+    pub action_timer: f32,
 }

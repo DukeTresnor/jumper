@@ -4,16 +4,21 @@
 use bevy::prelude::*;
 
 
+// -- Animation components -- //
+
 #[derive(Component)]
 pub struct AnimationIndices {
     pub first: usize,
     pub last: usize,
 }
 
-
 // Weird formatting, must be b/c of Deref and DerefMut
 #[derive(Component, Deref, DerefMut)]
-pub struct AnimationTimer(Timer);
+pub struct AnimationTimer(pub Timer);
+
+// -- Animation components -- //
+
+
 
 #[derive(Component)]
 pub struct Gravity {
@@ -24,6 +29,8 @@ pub struct Gravity {
 pub struct Floor {}
 
 
+
+// -- collision components -- //
 #[derive(Component)]
 pub struct BoundingBox {
     pub x_min: f32,
@@ -40,3 +47,4 @@ pub struct EntitySizeCollision {
     pub horizontal_entity_size: f32,
     pub vertical_entity_size: f32,
 }
+// -- collision components -- //

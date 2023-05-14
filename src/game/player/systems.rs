@@ -2,14 +2,19 @@
 
 
 use bevy::a11y::accesskit::Action;
+use bevy::input::keyboard::KeyboardInput;
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 
 use crate::game::components::*;
+use crate::game::player;
+use crate::game::resources::*;
 use crate::game::player::components::*;
 use crate::game::player::PlayerState;
 use crate::game::player::{PLAYER_SPEED, PLAYER_SIZE};
 use crate::game::GRAVITY;
+
+use bevy::input::ButtonState;
 
 pub fn spawn_player(
     mut commands: Commands,
@@ -61,7 +66,9 @@ pub fn spawn_player(
             },
             ActionStateVector {
                 action_vector: Vec::new(),
-            }
+            },
+            animation_indices,
+            AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
         )
     );
 }
@@ -132,23 +139,39 @@ pub fn temp_player_up_movement(
 
 pub fn player_jump(
     keyboard_input: Res<Input<KeyCode>>,
-    mut player_query: Query<(&mut Transform, &mut JumpVelocity, &mut ActionStateVector), With<Player>>,
+    mut player_query: Query<(&mut Transform, &mut JumpVelocity), With<Player>>,
     //time: Res<Time>,
 ) {
-    if let Ok((mut transform, mut jump_velocity, mut action_state_vector)) = player_query.get_single_mut() {
+    if let Ok((mut transform, mut jump_velocity)) = player_query.get_single_mut() {
         //let up_direction = Vec3::new(0.0, 1.0, 0.0);
 
         if keyboard_input.just_pressed(KeyCode::Space) {
             println!("I just jumped");
             jump_velocity.vertical_velocity = PLAYER_SPEED;
             //println!("{}", jump_velocity.vertical_velocity);
-            action_state_vector.action_vector.push(KeyCode::Space);
         }
         //transform.translation += up_direction * jump_velocity.vertical_velocity * time.delta_seconds()
         //    - GRAVITY * time.delta_seconds() * time.delta_seconds();
         
         
     }
+}
+
+
+pub fn player_attack(
+    // needs mutable commands
+    // needs player query
+    // needs keyboard input
+    // needs player state
+    // needs the mutable next player state to transition to another player state
+    //    player_state: Res<State<PlayerState>>,
+    // mut next_player_state: ResMut<NextState<PlayerState>>,
+    // needs the asset server
+    // needs a texture atlas
+    //   asset_server: Res<AssetServer>,
+    // mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+) {
+    //
 }
 
 
@@ -196,11 +219,11 @@ pub fn ground_check(
         for (floor_transform, floor_collision) in floor_query.iter() {
             // check collision get boolean
             //let distance = player_transform.translation.distance(floor_transform.translation);
-            let horizontal_distance = player_transform.translation.x - floor_transform.translation.x;
+            let _horizontal_distance = player_transform.translation.x - floor_transform.translation.x;
             let vertical_distance = player_transform.translation.y - floor_transform.translation.y;
-            let horizontal_player_length = player_collision.horizontal_entity_size / 2.0;
+            let _horizontal_player_length = player_collision.horizontal_entity_size / 2.0;
             let vertical_player_length = player_collision.vertical_entity_size / 2.0;
-            let horizontal_floor_length = floor_collision.horizontal_entity_size / 2.0;
+            let _horizontal_floor_length = floor_collision.horizontal_entity_size / 2.0;
             let vertical_floor_length = floor_collision.vertical_entity_size / 2.0;
             
             // if (horizontal_distance < horizontal_player_length + horizontal_floor_length)
@@ -225,8 +248,9 @@ pub fn ground_check(
 }
 
 
+// this system doesn't work right now
 // make a new system that, when the player is grounded, sets their y position to the floor's y position
-pub fn force_player_to_ground(
+pub fn _force_player_to_ground(
     mut player_query: Query<(&mut Transform, &EntitySizeCollision), With<Player>>,
     floor_query: Query<(&Transform, &EntitySizeCollision), With<Floor>>,
 ) {
@@ -243,16 +267,53 @@ pub fn force_player_to_ground(
 }
 
 
-// Debug system
+
+// Debug system -- might not need to be a debug...
 pub fn debug_get_player_action_vector(
-    player_query: Query<&ActionStateVector, With<Player>>,
-    keyboard_input: Res<Input<KeyCode>>,
+    mut player_query: Query<&mut ActionStateVector, With<Player>>,
+    //keyboard_input: Res<Input<KeyCode>>,
+    mut keyboard_event_reader: EventReader<KeyboardInput>,
+    time: Res<Time>,
+    mut input_buffer_timer: ResMut<InputBufferTimer>
 ) {
-    if let Ok(player_action_state_vector) = player_query.get_single() {
+    // If we get a valid player entity, have player_action_state_vector get that entity's ActioniStateVector component
+    if let Ok(mut player_action_state_vector) = player_query.get_single_mut() {
         
-        if keyboard_input.just_pressed(KeyCode::L) {
-            println!("Player action state vector: {:?}", player_action_state_vector.action_vector);
+        // printing
+        //println!("{}", player_action_state_vector.action_vector);
+        for (key_code, action_timer_value) in &player_action_state_vector.action_vector {
+            println!("{:?}", key_code);
+            println!("{:?}", action_timer_value.action_timer);
         }
+
+        
+
+        // Tick the timer
+        input_buffer_timer.timer.tick(time.delta());
+
+        if input_buffer_timer.timer.finished() {
+            // clear the player's action state vector
+            player_action_state_vector.action_vector.clear();
+        }
+
+        for keyboard_event in keyboard_event_reader.iter() {
+            match keyboard_event.state {
+                ButtonState::Pressed => {
+                    println!("Key press: {:?} ({})", keyboard_event.key_code, keyboard_event.scan_code);
+                    player_action_state_vector.action_vector.push((keyboard_event.key_code.unwrap(), ActionTimerValue {action_timer: time.elapsed_seconds()})) ;
+                }
+                ButtonState::Released => {
+                    println!("Key release: {:?} ({})", keyboard_event.key_code, keyboard_event.scan_code);
+                }
+            }
+            // add the keyboard_event to the action state vector reference.
+            //   might need to change type of the Action state vector to contain a vector of key events instead of a key codes
+        }
+
+
+        //if keyboard_input.just_pressed(KeyCode::L) {
+        //    println!("Player action state vector: {:?}", player_action_state_vector.action_vector);
+        //}
         
     }
 }
