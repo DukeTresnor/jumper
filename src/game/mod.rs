@@ -19,6 +19,8 @@ use crate::events::GameOver;
 // access everything in game/systems.rs
 use systems::*;
 
+use self::resources::InputBufferTimer;
+
 
 // Constants
 pub const GRAVITY: f32 = 98.1; // meters / second^2
@@ -29,6 +31,7 @@ pub struct  GamePlugin;
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
         app
+            .init_resource::<InputBufferTimer>()
             .add_state::<SimulationState>()
             .add_event::<GameOver>()
             // pause the simulation once you enter the game state of AppState

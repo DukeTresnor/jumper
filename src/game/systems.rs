@@ -134,6 +134,8 @@ pub fn despawn_floor(
 // Needs a time resource
 // Needs a mutable query to AnimationIndices to get the entity's spritesheet's first and last desired sprite,
 //   to a mutable AnimationTimer 
+// this might need to also return the entity to a specific state?
+//   or just handle it inside a player system
 pub fn animate_sprite(
     time: Res<Time>,
     mut animation_query: Query<(
