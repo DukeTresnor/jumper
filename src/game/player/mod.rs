@@ -25,7 +25,7 @@ impl Plugin for PlayerPlugin {
             .add_system(spawn_player.in_schedule(OnEnter(AppState::Game)))
             .add_systems(
                 (
-                    debug_get_player_action_vector,
+                    //debug_get_player_action_vector,
                     player_movement,
                     confine_player_movement,
                     temp_player_up_movement,
@@ -59,4 +59,5 @@ pub enum PlayerState {
     #[default]
     Grounded,
     Air,
+    Attack,
 }
