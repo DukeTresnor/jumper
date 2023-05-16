@@ -2,6 +2,7 @@
 
 
 use bevy::a11y::accesskit::Action;
+use bevy::animation;
 use bevy::input::keyboard::KeyboardInput;
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
@@ -26,12 +27,13 @@ pub fn spawn_player(
     let window = window_query.get_single().unwrap();
 
     //let sprite_sheet_handle = asset_server.load("sprites/lenneth/idle_anim/idle_spritesheet.png");    
-    // Something is off, not working...
     let texture_atlas = 
         TextureAtlas::from_grid(
-            asset_server.load("sprites/lenneth/idle_anim/idle_spritesheet.png"),
+            //asset_server.load("sprites/lenneth/idle_anim/idle_spritesheet.png"),
+            asset_server.load("sprites/lenneth/test_sprite_sheet/spritesheet.png"),
             // Inputs here are the size of each individual sprite inside the spritesheet
-            Vec2::new(64.0, 64.0), 12, 1, None, None
+            //Vec2::new(64.0, 64.0), 12, 1, None, None
+            Vec2::new(64.0, 64.0), 17, 1, None, None
         );
     let texture_atlas_handle = texture_atlases.add(texture_atlas);
     let animation_indices = AnimationIndices { first: 0, last: 11 };
@@ -142,25 +144,25 @@ pub fn player_jump(
     mut player_query: Query<(&mut Transform, &mut JumpVelocity), With<Player>>,
     //time: Res<Time>,
 ) {
-    if let Ok((mut transform, mut jump_velocity)) = player_query.get_single_mut() {
+    if let Ok((transform, mut jump_velocity)) = player_query.get_single_mut() {
         //let up_direction = Vec3::new(0.0, 1.0, 0.0);
 
         if keyboard_input.just_pressed(KeyCode::Space) {
             println!("I just jumped");
             jump_velocity.vertical_velocity = PLAYER_SPEED;
-            //println!("{}", jump_velocity.vertical_velocity);
         }
-        //transform.translation += up_direction * jump_velocity.vertical_velocity * time.delta_seconds()
-        //    - GRAVITY * time.delta_seconds() * time.delta_seconds();
-        
         
     }
 }
 
-
+// changing the indeces works!
+// now just need a way to make the coding process more efficient
+//   and I need a better sprite sheet
+// code also doesn't return to original index set
 pub fn player_attack(
     // needs mutable commands
     // needs player query
+    // needs Action state vector
     // needs keyboard input
     // needs player state
     // needs the mutable next player state to transition to another player state
@@ -170,8 +172,84 @@ pub fn player_attack(
     // needs a texture atlas
     //   asset_server: Res<AssetServer>,
     // mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+    // needs time resource
+    // time: Res<Time>,
+
+    // we don't actually need the texture atlas itself I think, because all we should need to do is change the AnimationIndeces
+    // we do need the texture atlas, because we need to access the current index of the texture atlas
+
+    mut commands: Commands,
+    mut player_query: Query<(&ActionStateVector, &mut AnimationIndices, &mut TextureAtlasSprite), With<Player>>,
+    keyboard_input: Res<Input<KeyCode>>,
+    player_state: Res<State<PlayerState>>,
+    mut next_player_state: ResMut<NextState<PlayerState>>,
+    asset_server: Res<AssetServer>,
+    time: Res<Time>,
+
+
 ) {
+    // if there's a player entity, get its texture atlas 
+    // 
+    // if a is pressed
+    //   change the indeces of the texture atlas so that animate_sprite() in game/systems.rs loops through the correct portion of the spritesheet
     //
+    // (create system that is meant to 'reset' the the player's state and the texture atlas' indeces to the
+    //   new state's default index range once 1 loop of the non-default animation is done)
+    //
+    // inside a button if block, check if last several elements of input buffer match the input for a special move, and check if the time values of those elements
+    //   are close enough to time.elapsed_seconds()
+
+    // this probably goes with the external ending system that resets states...
+    //let mut ending_index = 0;
+
+    if let Ok((action_state_vector, mut animation_indeces, mut texture_atlas_sprite_sprite_sheet)) = player_query.get_single_mut() {
+        
+        let mut ending_index = if keyboard_input.just_pressed(KeyCode::J) && player_state.0 == PlayerState::Grounded {
+            //if player_state.0 == PlayerState::Grounded {
+            //    animation_indeces.first = 11;
+            //    animation_indeces.last = 16;
+            //    texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+            //    next_player_state.set(PlayerState::Attack);
+            //}
+            animation_indeces.first = 11;
+            animation_indeces.last = 16;
+            texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+            //next_player_state.set(PlayerState::Attack);
+            animation_indeces.last
+        }
+        else {
+            animation_indeces.last
+        };
+        
+        // can repeat same structure, jsut with different first and last indeces and different keycodes
+        let mut ending_index = if keyboard_input.just_pressed(KeyCode::K) {
+            animation_indeces.first = 0;
+            animation_indeces.last = 16;
+            texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+            animation_indeces.last
+
+        }
+        else {
+            animation_indeces.last
+        };
+
+
+        // --- Ending Bit !! --- //
+        // this needs to go in its own system at some point
+        if texture_atlas_sprite_sprite_sheet.index == ending_index {
+            // reset animation indeces to the default for the particular state
+            animation_indeces.first = 0;
+            animation_indeces.last = 11;
+            texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+            ending_index = animation_indeces.last;
+            //next_player_state.set(PlayerState::Grounded);
+        }
+
+        println!("(first index, last index): [{}, {}], current index: {}, ending index: {}", animation_indeces.first, animation_indeces.last, texture_atlas_sprite_sprite_sheet.index, ending_index);
+
+        // --- Ending Bit !! --- //
+
+    }
 }
 
 
@@ -280,11 +358,11 @@ pub fn debug_get_player_action_vector(
     if let Ok(mut player_action_state_vector) = player_query.get_single_mut() {
         
         // printing
-        //println!("{}", player_action_state_vector.action_vector);
-        for (key_code, action_timer_value) in &player_action_state_vector.action_vector {
-            println!("{:?}", key_code);
-            println!("{:?}", action_timer_value.action_timer);
-        }
+        println!("{:?}", player_action_state_vector.action_vector);
+        //for (key_code, action_timer_value) in &player_action_state_vector.action_vector {
+        //    println!("{:?}", key_code);
+        //    println!("{:?}", action_timer_value);
+        //}
 
         
 
@@ -293,14 +371,20 @@ pub fn debug_get_player_action_vector(
 
         if input_buffer_timer.timer.finished() {
             // clear the player's action state vector
-            player_action_state_vector.action_vector.clear();
+            //player_action_state_vector.action_vector.clear();
+
+            // If the input buffer has elements, remove the 0th element (the one added last)
+            if !player_action_state_vector.action_vector.is_empty() {
+                player_action_state_vector.action_vector.remove(0);
+            }
+            
         }
 
         for keyboard_event in keyboard_event_reader.iter() {
             match keyboard_event.state {
                 ButtonState::Pressed => {
                     println!("Key press: {:?} ({})", keyboard_event.key_code, keyboard_event.scan_code);
-                    player_action_state_vector.action_vector.push((keyboard_event.key_code.unwrap(), ActionTimerValue {action_timer: time.elapsed_seconds()})) ;
+                    player_action_state_vector.action_vector.push((keyboard_event.key_code.unwrap(), time.elapsed_seconds()) );
                 }
                 ButtonState::Released => {
                     println!("Key release: {:?} ({})", keyboard_event.key_code, keyboard_event.scan_code);
