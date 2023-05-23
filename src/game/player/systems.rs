@@ -17,6 +17,8 @@ use crate::game::GRAVITY;
 
 use bevy::input::ButtonState;
 
+use super::SPECIAL_MOVE_BUFFER_TIME;
+
 pub fn spawn_player(
     mut commands: Commands,
     window_query: Query<&Window, With<PrimaryWindow>>,
@@ -30,10 +32,11 @@ pub fn spawn_player(
     let texture_atlas = 
         TextureAtlas::from_grid(
             //asset_server.load("sprites/lenneth/idle_anim/idle_spritesheet.png"),
-            asset_server.load("sprites/lenneth/test_sprite_sheet/spritesheet.png"),
+            //asset_server.load("sprites/lenneth/test_sprite_sheet/spritesheet.png"),
+            asset_server.load("sprites/lenneth/test_sprite_sheet/test_lenneth_spritesheet_spread_mod.png"),
             // Inputs here are the size of each individual sprite inside the spritesheet
             //Vec2::new(64.0, 64.0), 12, 1, None, None
-            Vec2::new(64.0, 64.0), 17, 1, None, None
+            Vec2::new(96.0, 64.0), 17, 2, None, None
         );
     let texture_atlas_handle = texture_atlases.add(texture_atlas);
     let animation_indices = AnimationIndices { first: 0, last: 11 };
@@ -181,6 +184,7 @@ pub fn player_attack(
     mut commands: Commands,
     mut player_query: Query<(&ActionStateVector, &mut AnimationIndices, &mut TextureAtlasSprite), With<Player>>,
     keyboard_input: Res<Input<KeyCode>>,
+    mut keyboard_event_reader: EventReader<KeyboardInput>,
     player_state: Res<State<PlayerState>>,
     mut next_player_state: ResMut<NextState<PlayerState>>,
     asset_server: Res<AssetServer>,
@@ -204,15 +208,53 @@ pub fn player_attack(
 
     if let Ok((action_state_vector, mut animation_indeces, mut texture_atlas_sprite_sprite_sheet)) = player_query.get_single_mut() {
         
-        let mut ending_index = if keyboard_input.just_pressed(KeyCode::J) && player_state.0 == PlayerState::Grounded {
+        let ((second_first_difference, third_second_difference), (recent_key_first, recent_key_second, recent_key_third)) = if action_state_vector.action_vector.len() >= 3 {
+        //if !action_state_vector.action_vector.is_empty() {
+            // assign last several inputs into a variable to check
+            //let mut recent_action_vector = action_state_vector.action_vector.last().unwrap();
+            let recent_action_vector = action_state_vector.action_vector.as_slice()[action_state_vector.action_vector.len()-3..].to_vec();
+            let recent_element_first: f32 = recent_action_vector[0].1;
+            let recent_element_second: f32 = recent_action_vector[1].1;
+            let recent_element_third: f32 = recent_action_vector[2].1;
+
+            let second_first_difference: f32 = recent_element_second - recent_element_first;
+            let third_second_difference: f32 = recent_element_third - recent_element_second;
+
+            //println!("_______________________________Recent actions: {:?}", recent_action_vector);
+            //println!("first: {}, second: {}, third: {}", recent_element_first, recent_element_second, recent_element_third);
+            //println!("2 - 1: {}, 3 - 2: {}", second_first_difference, third_second_difference);
+
+            println!("first key: {:?}, second key: {:?}, third key: {:?}", recent_action_vector[0].0, recent_action_vector[1].0, recent_action_vector[2].0);
+
+            ((second_first_difference, third_second_difference), (recent_action_vector[0].0, recent_action_vector[1].0, recent_action_vector[2].0))
+
+        }
+        else {
+            ((500.0, 500.0), (KeyCode::Key1, KeyCode::Key2, KeyCode::Key3))
+        };
+
+
+        /*
+        
+        let v = vec![0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+        let last3 = v.as_slice()[v.len()-3..].to_vec();
+         */
+
+
+
+        // In the future replace all of this let if statements into a single match block
+
+        let mut ending_index = if keyboard_input.just_pressed(KeyCode::J) {
             //if player_state.0 == PlayerState::Grounded {
             //    animation_indeces.first = 11;
             //    animation_indeces.last = 16;
             //    texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
             //    next_player_state.set(PlayerState::Attack);
             //}
-            animation_indeces.first = 11;
-            animation_indeces.last = 16;
+            //animation_indeces.first = 11;
+            animation_indeces.first = 18;
+            //animation_indeces.last = 16;
+            animation_indeces.last = 21;
             texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
             //next_player_state.set(PlayerState::Attack);
             animation_indeces.last
@@ -221,10 +263,43 @@ pub fn player_attack(
             animation_indeces.last
         };
         
+
+        /* 
+        // building block for overall input handler... fill in later
+        // keyboard_event.key_code.unwrap()
+        for keyboard_event in keyboard_event_reader.iter() {
+            let mut test_index = match keyboard_event.key_code.unwrap() {
+                KeyCode::J =>
+                    {
+                        println!("Light Attack");
+                        animation_indeces.last
+                    }
+                KeyCode::K => 
+                    {
+                        println!("Medium Attack");
+                        animation_indeces.last
+                    }
+                KeyCode::L => 
+                    {
+                        println!("Heavy Attack");
+                        animation_indeces.last
+                    }
+                _ => animation_indeces.last,
+            };
+        };
+        
+        */
+
+
+
+
         // can repeat same structure, jsut with different first and last indeces and different keycodes
-        let mut ending_index = if keyboard_input.just_pressed(KeyCode::K) {
-            animation_indeces.first = 0;
-            animation_indeces.last = 16;
+        ending_index = if keyboard_input.just_pressed(KeyCode::K) {
+            println!("Doing K attack -- Medium");
+            //animation_indeces.first = 11;
+            animation_indeces.first = 18;
+            //animation_indeces.last = 16;
+            animation_indeces.last = 21;
             texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
             animation_indeces.last
 
@@ -233,6 +308,82 @@ pub fn player_attack(
             animation_indeces.last
         };
 
+
+        ending_index = if keyboard_input.just_pressed(KeyCode::L) {
+            println!("Doing L attack -- Heavy");
+            animation_indeces.last
+        }
+        else {
+            animation_indeces.last
+        };
+
+
+        // -- Special Moves -- //
+
+
+        // try to make an if block for quarter circle forward here -- down, down-right, right + button
+        //   this would actually just be in the J, K, L, or ; if blocks...
+        //   maybe they could be in there own system???
+
+        // fireball
+        //   if you pressed j and your recent action vector contains S, D, j, do fireball
+        ending_index = if keyboard_input.just_pressed(KeyCode::J) 
+            && second_first_difference <= SPECIAL_MOVE_BUFFER_TIME 
+            && third_second_difference <= SPECIAL_MOVE_BUFFER_TIME
+            && recent_key_first == KeyCode::S
+            && recent_key_second == KeyCode::D
+            && recent_key_third == KeyCode::J
+            {
+                println!("Doing Light Forward Fireball");
+            animation_indeces.first = 0;
+            //animation_indeces.last = 16;
+            animation_indeces.last = 21;
+            texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+            animation_indeces.last
+            }
+            else {
+                animation_indeces.last
+            };
+
+        ending_index = if keyboard_input.just_pressed(KeyCode::K) 
+            && second_first_difference <= SPECIAL_MOVE_BUFFER_TIME
+            && third_second_difference <= SPECIAL_MOVE_BUFFER_TIME 
+            && recent_key_first == KeyCode::S
+            && recent_key_second == KeyCode::D
+            && recent_key_third == KeyCode::K
+            {
+                println!("Doing Medium Forward Fireball");
+            animation_indeces.first = 0;
+            //animation_indeces.last = 16;
+            animation_indeces.last = 21;
+            texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+            animation_indeces.last
+            }
+            else {
+                animation_indeces.last
+            };
+
+
+        ending_index = if keyboard_input.just_pressed(KeyCode::L) 
+            && second_first_difference <= SPECIAL_MOVE_BUFFER_TIME 
+            && third_second_difference <= SPECIAL_MOVE_BUFFER_TIME 
+            && recent_key_first == KeyCode::S
+            && recent_key_second == KeyCode::D
+            && recent_key_third == KeyCode::L
+            {
+                println!("Doing Heavy Forward Fireball");
+            animation_indeces.first = 0;
+            //animation_indeces.last = 16;
+            animation_indeces.last = 21;
+            texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+            animation_indeces.last
+            }
+            else {
+                animation_indeces.last
+            };
+
+
+        // -- Special Moves -- //
 
         // --- Ending Bit !! --- //
         // this needs to go in its own system at some point
@@ -245,7 +396,7 @@ pub fn player_attack(
             //next_player_state.set(PlayerState::Grounded);
         }
 
-        println!("(first index, last index): [{}, {}], current index: {}, ending index: {}", animation_indeces.first, animation_indeces.last, texture_atlas_sprite_sprite_sheet.index, ending_index);
+        //println!("(first index, last index): [{}, {}], current index: {}, ending index: {}", animation_indeces.first, animation_indeces.last, texture_atlas_sprite_sprite_sheet.index, ending_index);
 
         // --- Ending Bit !! --- //
 
@@ -347,7 +498,7 @@ pub fn _force_player_to_ground(
 
 
 // Debug system -- might not need to be a debug...
-pub fn debug_get_player_action_vector(
+pub fn populate_player_action_vector(
     mut player_query: Query<&mut ActionStateVector, With<Player>>,
     //keyboard_input: Res<Input<KeyCode>>,
     mut keyboard_event_reader: EventReader<KeyboardInput>,
@@ -383,11 +534,12 @@ pub fn debug_get_player_action_vector(
         for keyboard_event in keyboard_event_reader.iter() {
             match keyboard_event.state {
                 ButtonState::Pressed => {
-                    println!("Key press: {:?} ({})", keyboard_event.key_code, keyboard_event.scan_code);
+                    //println!("Key press: {:?} ({})", keyboard_event.key_code, keyboard_event.scan_code);
                     player_action_state_vector.action_vector.push((keyboard_event.key_code.unwrap(), time.elapsed_seconds()) );
                 }
                 ButtonState::Released => {
-                    println!("Key release: {:?} ({})", keyboard_event.key_code, keyboard_event.scan_code);
+                    //println!("Key release: {:?} ({})", keyboard_event.key_code, keyboard_event.scan_code);
+                    //player_action_state_vector.action_vector.push((keyboard_event.key_code.unwrap(), time.elapsed_seconds()) );
                 }
             }
             // add the keyboard_event to the action state vector reference.

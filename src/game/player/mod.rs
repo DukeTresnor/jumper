@@ -16,6 +16,8 @@ use crate::game::SimulationState;
 pub const PLAYER_SPEED: f32 = 400.0;
 pub const PLAYER_SIZE: f32 = 64.0; // This is the player sprite size
 
+pub const SPECIAL_MOVE_BUFFER_TIME: f32 = 0.5;
+
 pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
@@ -25,7 +27,7 @@ impl Plugin for PlayerPlugin {
             .add_system(spawn_player.in_schedule(OnEnter(AppState::Game)))
             .add_systems(
                 (
-                    //debug_get_player_action_vector,
+                    populate_player_action_vector,
                     player_movement,
                     confine_player_movement,
                     temp_player_up_movement,
