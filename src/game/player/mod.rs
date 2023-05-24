@@ -24,15 +24,17 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app
             .add_state::<PlayerState>()
+            .add_state::<GroundedState>()
+            .add_state::<AirState>()
             .add_system(spawn_player.in_schedule(OnEnter(AppState::Game)))
             .add_systems(
                 (
                     populate_player_action_vector,
-                    player_movement,
+                    //player_movement,
                     confine_player_movement,
                     temp_player_up_movement,
                     ground_check,
-                    //force_player_to_ground, //<-- this system doesn't work right now
+                    player_reset_to_neutral,
                 )
                 .in_set(OnUpdate(AppState::Game))
                 .in_set(OnUpdate(SimulationState::Running))
@@ -40,7 +42,8 @@ impl Plugin for PlayerPlugin {
             .add_systems(
                 (
                     player_jump,
-                    player_attack,
+                    player_ground_attack,
+                    player_movement,
                 )
             
                 .in_set(OnUpdate(AppState::Game))
@@ -61,5 +64,18 @@ pub enum PlayerState {
     #[default]
     Grounded,
     Air,
+}
+
+#[derive(States, Debug, Clone, Copy, Eq, PartialEq, Hash, Default)]
+pub enum GroundedState {
+    #[default]
+    Neutral,
+    Attack,
+}
+
+#[derive(States, Debug, Clone, Copy, Eq, PartialEq, Hash, Default)]
+pub enum AirState {
+    #[default]
+    Neutral,
     Attack,
 }
