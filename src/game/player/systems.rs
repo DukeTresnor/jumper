@@ -12,6 +12,8 @@ use crate::game::player;
 use crate::game::resources::*;
 use crate::game::player::components::*;
 use crate::game::player::PlayerState;
+use crate::game::player::GroundedState;
+use crate::game::player::AirState;
 use crate::game::player::{PLAYER_SPEED, PLAYER_SIZE};
 use crate::game::GRAVITY;
 
@@ -36,7 +38,7 @@ pub fn spawn_player(
             asset_server.load("sprites/lenneth/test_sprite_sheet/test_lenneth_spritesheet_spread_mod.png"),
             // Inputs here are the size of each individual sprite inside the spritesheet
             //Vec2::new(64.0, 64.0), 12, 1, None, None
-            Vec2::new(96.0, 64.0), 17, 2, None, None
+            Vec2::new(96.0, 64.0), 17, 3, None, None
         );
     let texture_atlas_handle = texture_atlases.add(texture_atlas);
     let animation_indices = AnimationIndices { first: 0, last: 11 };
@@ -95,23 +97,29 @@ pub fn player_movement(
     keyboard_input: Res<Input<KeyCode>>,
     mut player_query: Query<&mut Transform, With<Player>>,
     time: Res<Time>,
+    grounded_state: Res<State<GroundedState>>,
 ) {
     // Get the single mutable thing that exists in player_query, and store it into the transform variable
     // If transform gets a Transform component, continue the if block
     if let Ok(mut transform) = player_query.get_single_mut() {
-        let mut direction = Vec3::ZERO;
-        // Handle the different keyboard inputs that dictate movement
-        if keyboard_input.pressed(KeyCode::A) {
-            direction += Vec3::new(-1.0, 0.0, 0.0);
+        if grounded_state.0 == GroundedState::Neutral {
+
+            let mut direction = Vec3::ZERO;
+            // Handle the different keyboard inputs that dictate movement
+            if keyboard_input.pressed(KeyCode::A) {
+                direction += Vec3::new(-1.0, 0.0, 0.0);
+            }
+            if keyboard_input.pressed(KeyCode::D) {
+                direction += Vec3::new(1.0, 0.0, 0.0);
+            }
+            //
+            if direction.length() > 0.0 {
+                direction = direction.normalize();
+            }
+            transform.translation += direction * PLAYER_SPEED * time.delta_seconds();
+
         }
-        if keyboard_input.pressed(KeyCode::D) {
-            direction += Vec3::new(1.0, 0.0, 0.0);
-        }
-        //
-        if direction.length() > 0.0 {
-            direction = direction.normalize();
-        }
-        transform.translation += direction * PLAYER_SPEED * time.delta_seconds();
+        
     }
 }
 
@@ -162,7 +170,7 @@ pub fn player_jump(
 // now just need a way to make the coding process more efficient
 //   and I need a better sprite sheet
 // code also doesn't return to original index set
-pub fn player_attack(
+pub fn player_ground_attack(
     // needs mutable commands
     // needs player query
     // needs Action state vector
@@ -185,8 +193,8 @@ pub fn player_attack(
     mut player_query: Query<(&ActionStateVector, &mut AnimationIndices, &mut TextureAtlasSprite), With<Player>>,
     keyboard_input: Res<Input<KeyCode>>,
     mut keyboard_event_reader: EventReader<KeyboardInput>,
-    player_state: Res<State<PlayerState>>,
-    mut next_player_state: ResMut<NextState<PlayerState>>,
+    grounded_state: Res<State<GroundedState>>,
+    mut next_grounded_state: ResMut<NextState<GroundedState>>,
     asset_server: Res<AssetServer>,
     time: Res<Time>,
 
@@ -213,12 +221,12 @@ pub fn player_attack(
             // assign last several inputs into a variable to check
             //let mut recent_action_vector = action_state_vector.action_vector.last().unwrap();
             let recent_action_vector = action_state_vector.action_vector.as_slice()[action_state_vector.action_vector.len()-3..].to_vec();
-            let recent_element_first: f32 = recent_action_vector[0].1;
-            let recent_element_second: f32 = recent_action_vector[1].1;
-            let recent_element_third: f32 = recent_action_vector[2].1;
+            let recent_time_first: f32 = recent_action_vector[0].1;
+            let recent_time_second: f32 = recent_action_vector[1].1;
+            let recent_time_third: f32 = recent_action_vector[2].1;
 
-            let second_first_difference: f32 = recent_element_second - recent_element_first;
-            let third_second_difference: f32 = recent_element_third - recent_element_second;
+            let second_first_difference: f32 = recent_time_second - recent_time_first;
+            let third_second_difference: f32 = recent_time_third - recent_time_second;
 
             //println!("_______________________________Recent actions: {:?}", recent_action_vector);
             //println!("first: {}, second: {}, third: {}", recent_element_first, recent_element_second, recent_element_third);
@@ -244,165 +252,199 @@ pub fn player_attack(
 
         // In the future replace all of this let if statements into a single match block
 
-        let mut ending_index = if keyboard_input.just_pressed(KeyCode::J) {
-            //if player_state.0 == PlayerState::Grounded {
-            //    animation_indeces.first = 11;
-            //    animation_indeces.last = 16;
+        if grounded_state.0 == GroundedState::Neutral {
+            let mut ending_index = if keyboard_input.just_pressed(KeyCode::J) {
+                
+                next_grounded_state.set(GroundedState::Attack);
+                //if player_state.0 == PlayerState::Grounded {
+                //    animation_indeces.first = 11;
+                //    animation_indeces.last = 16;
+                //    texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+                //    next_player_state.set(PlayerState::Attack);
+                //}
+                //animation_indeces.first = 11;
+                animation_indeces.first = 18;
+                //animation_indeces.last = 16;
+                animation_indeces.last = 21;
+                texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+                //next_player_state.set(PlayerState::Attack);
+                animation_indeces.last
+            }
+            else {
+                animation_indeces.last
+            };
+            
+
+            /* 
+            // building block for overall input handler... fill in later
+            // keyboard_event.key_code.unwrap()
+            for keyboard_event in keyboard_event_reader.iter() {
+                let mut test_index = match keyboard_event.key_code.unwrap() {
+                    KeyCode::J =>
+                        {
+                            println!("Light Attack");
+                            animation_indeces.last
+                        }
+                    KeyCode::K => 
+                        {
+                            println!("Medium Attack");
+                            animation_indeces.last
+                        }
+                    KeyCode::L => 
+                        {
+                            println!("Heavy Attack");
+                            animation_indeces.last
+                        }
+                    _ => animation_indeces.last,
+                };
+            };
+            
+            */
+
+
+
+
+            // can repeat same structure, jsut with different first and last indeces and different keycodes
+            ending_index = if keyboard_input.just_pressed(KeyCode::K) {
+                next_grounded_state.set(GroundedState::Attack);
+                println!("Doing K attack -- Medium");
+                //animation_indeces.first = 11;
+                animation_indeces.first = 18;
+                //animation_indeces.last = 16;
+                animation_indeces.last = 21;
+                texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+                animation_indeces.last
+
+            }
+            else {
+                animation_indeces.last
+            };
+
+
+            ending_index = if keyboard_input.just_pressed(KeyCode::L) {
+                next_grounded_state.set(GroundedState::Attack);
+                println!("Doing L attack -- Heavy");
+                animation_indeces.last
+            }
+            else {
+                animation_indeces.last
+            };
+
+
+            // -- Special Moves -- //
+
+
+            // try to make an if block for quarter circle forward here -- down, down-right, right + button
+            //   this would actually just be in the J, K, L, or ; if blocks...
+            //   maybe they could be in there own system???
+
+            // fireball
+            //   if you pressed j and your recent action vector contains S, D, j, do fireball
+            ending_index = if keyboard_input.just_pressed(KeyCode::J) 
+                && second_first_difference <= SPECIAL_MOVE_BUFFER_TIME 
+                && third_second_difference <= SPECIAL_MOVE_BUFFER_TIME
+                && recent_key_first == KeyCode::S
+                && recent_key_second == KeyCode::D
+                && recent_key_third == KeyCode::J
+                {
+                    next_grounded_state.set(GroundedState::Attack);
+                    println!("Doing Light Forward Fireball");
+                    animation_indeces.first = 33;
+                    //animation_indeces.last = 16;
+                    animation_indeces.last = 48;
+                    texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+                    animation_indeces.last
+                }
+                else {
+                    animation_indeces.last
+                };
+
+            ending_index = if keyboard_input.just_pressed(KeyCode::K) 
+                && second_first_difference <= SPECIAL_MOVE_BUFFER_TIME
+                && third_second_difference <= SPECIAL_MOVE_BUFFER_TIME 
+                && recent_key_first == KeyCode::S
+                && recent_key_second == KeyCode::D
+                && recent_key_third == KeyCode::K
+                {
+                    next_grounded_state.set(GroundedState::Attack);
+                    println!("Doing Medium Forward Fireball");
+                    animation_indeces.first = 0;
+                    //animation_indeces.last = 16;
+                    animation_indeces.last = 21;
+                    texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+                    animation_indeces.last
+                }
+                else {
+                    animation_indeces.last
+                };
+
+
+            ending_index = if keyboard_input.just_pressed(KeyCode::L) 
+                && second_first_difference <= SPECIAL_MOVE_BUFFER_TIME 
+                && third_second_difference <= SPECIAL_MOVE_BUFFER_TIME 
+                && recent_key_first == KeyCode::S
+                && recent_key_second == KeyCode::D
+                && recent_key_third == KeyCode::L
+                {
+                    next_grounded_state.set(GroundedState::Attack);
+                    println!("Doing Heavy Forward Fireball");
+                    animation_indeces.first = 0;
+                    //animation_indeces.last = 16;
+                    animation_indeces.last = 21;
+                    texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+                    animation_indeces.last
+                }
+                else {
+                    animation_indeces.last
+                };
+
+
+            // -- Special Moves -- //
+
+            // --- Ending Bit !! --- //
+            // this needs to go in its own system at some point
+            //if texture_atlas_sprite_sprite_sheet.index == ending_index {
+            //    // reset animation indeces to the default for the particular state
+            //    animation_indeces.first = 0;
+            //    animation_indeces.last = 11;
             //    texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
-            //    next_player_state.set(PlayerState::Attack);
+            //    ending_index = animation_indeces.last;
+            //    next_grounded_state.set(GroundedState::Neutral);
+            //    //next_player_state.set(PlayerState::Grounded);
             //}
-            //animation_indeces.first = 11;
-            animation_indeces.first = 18;
-            //animation_indeces.last = 16;
-            animation_indeces.last = 21;
-            texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
-            //next_player_state.set(PlayerState::Attack);
-            animation_indeces.last
-        }
-        else {
-            animation_indeces.last
-        };
-        
 
-        /* 
-        // building block for overall input handler... fill in later
-        // keyboard_event.key_code.unwrap()
-        for keyboard_event in keyboard_event_reader.iter() {
-            let mut test_index = match keyboard_event.key_code.unwrap() {
-                KeyCode::J =>
-                    {
-                        println!("Light Attack");
-                        animation_indeces.last
-                    }
-                KeyCode::K => 
-                    {
-                        println!("Medium Attack");
-                        animation_indeces.last
-                    }
-                KeyCode::L => 
-                    {
-                        println!("Heavy Attack");
-                        animation_indeces.last
-                    }
-                _ => animation_indeces.last,
-            };
-        };
-        
-        */
+            //println!("(first index, last index): [{}, {}], current index: {}, ending index: {}", animation_indeces.first, animation_indeces.last, texture_atlas_sprite_sprite_sheet.index, ending_index);
 
-
-
-
-        // can repeat same structure, jsut with different first and last indeces and different keycodes
-        ending_index = if keyboard_input.just_pressed(KeyCode::K) {
-            println!("Doing K attack -- Medium");
-            //animation_indeces.first = 11;
-            animation_indeces.first = 18;
-            //animation_indeces.last = 16;
-            animation_indeces.last = 21;
-            texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
-            animation_indeces.last
-
-        }
-        else {
-            animation_indeces.last
-        };
-
-
-        ending_index = if keyboard_input.just_pressed(KeyCode::L) {
-            println!("Doing L attack -- Heavy");
-            animation_indeces.last
-        }
-        else {
-            animation_indeces.last
-        };
-
-
-        // -- Special Moves -- //
-
-
-        // try to make an if block for quarter circle forward here -- down, down-right, right + button
-        //   this would actually just be in the J, K, L, or ; if blocks...
-        //   maybe they could be in there own system???
-
-        // fireball
-        //   if you pressed j and your recent action vector contains S, D, j, do fireball
-        ending_index = if keyboard_input.just_pressed(KeyCode::J) 
-            && second_first_difference <= SPECIAL_MOVE_BUFFER_TIME 
-            && third_second_difference <= SPECIAL_MOVE_BUFFER_TIME
-            && recent_key_first == KeyCode::S
-            && recent_key_second == KeyCode::D
-            && recent_key_third == KeyCode::J
-            {
-                println!("Doing Light Forward Fireball");
-            animation_indeces.first = 0;
-            //animation_indeces.last = 16;
-            animation_indeces.last = 21;
-            texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
-            animation_indeces.last
-            }
-            else {
-                animation_indeces.last
-            };
-
-        ending_index = if keyboard_input.just_pressed(KeyCode::K) 
-            && second_first_difference <= SPECIAL_MOVE_BUFFER_TIME
-            && third_second_difference <= SPECIAL_MOVE_BUFFER_TIME 
-            && recent_key_first == KeyCode::S
-            && recent_key_second == KeyCode::D
-            && recent_key_third == KeyCode::K
-            {
-                println!("Doing Medium Forward Fireball");
-            animation_indeces.first = 0;
-            //animation_indeces.last = 16;
-            animation_indeces.last = 21;
-            texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
-            animation_indeces.last
-            }
-            else {
-                animation_indeces.last
-            };
-
-
-        ending_index = if keyboard_input.just_pressed(KeyCode::L) 
-            && second_first_difference <= SPECIAL_MOVE_BUFFER_TIME 
-            && third_second_difference <= SPECIAL_MOVE_BUFFER_TIME 
-            && recent_key_first == KeyCode::S
-            && recent_key_second == KeyCode::D
-            && recent_key_third == KeyCode::L
-            {
-                println!("Doing Heavy Forward Fireball");
-            animation_indeces.first = 0;
-            //animation_indeces.last = 16;
-            animation_indeces.last = 21;
-            texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
-            animation_indeces.last
-            }
-            else {
-                animation_indeces.last
-            };
-
-
-        // -- Special Moves -- //
-
-        // --- Ending Bit !! --- //
-        // this needs to go in its own system at some point
-        if texture_atlas_sprite_sprite_sheet.index == ending_index {
-            // reset animation indeces to the default for the particular state
-            animation_indeces.first = 0;
-            animation_indeces.last = 11;
-            texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
-            ending_index = animation_indeces.last;
-            //next_player_state.set(PlayerState::Grounded);
+            // --- Ending Bit !! --- //
         }
 
-        //println!("(first index, last index): [{}, {}], current index: {}, ending index: {}", animation_indeces.first, animation_indeces.last, texture_atlas_sprite_sprite_sheet.index, ending_index);
 
-        // --- Ending Bit !! --- //
 
     }
 }
 
+pub fn player_reset_to_neutral(
+    mut player_query: Query<(&mut AnimationIndices, &mut TextureAtlasSprite), With<Player>>,
+    grounded_state: Res<State<GroundedState>>,
+    mut next_grounded_state: ResMut<NextState<GroundedState>>,
+    air_state: Res<State<AirState>>,
+    mut next_air_state: ResMut<NextState<AirState>>,
+) {
+    if let Ok((mut animation_indeces, mut texture_atlas_sprite_sprite_sheet)) = player_query.get_single_mut() {
+        if texture_atlas_sprite_sprite_sheet.index == animation_indeces.last && (grounded_state.0 == GroundedState::Attack || air_state.0 == AirState::Attack) {
+            // reset animation indeces to the default for the particular state
+            animation_indeces.first = 0;
+            animation_indeces.last = 11;
+            texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+            //next_player_state.set(PlayerState::Grounded);
+
+            // reset to neutral state
+            next_grounded_state.set(GroundedState::Neutral);
+            next_air_state.set(AirState::Neutral);
+        }
+
+    }
+}
 
 
 pub fn confine_player_movement(
