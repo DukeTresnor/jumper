@@ -3,6 +3,7 @@
 
 use bevy::a11y::accesskit::Action;
 use bevy::animation;
+use bevy::input::keyboard;
 use bevy::input::keyboard::KeyboardInput;
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
@@ -20,6 +21,7 @@ use crate::game::GRAVITY;
 use bevy::input::ButtonState;
 
 use super::SPECIAL_MOVE_BUFFER_TIME;
+use super::DIRECTION_JUMP_BUFFER_TIME;
 
 pub fn spawn_player(
     mut commands: Commands,
@@ -152,19 +154,58 @@ pub fn temp_player_up_movement(
 
 pub fn player_jump(
     keyboard_input: Res<Input<KeyCode>>,
-    mut player_query: Query<(&mut Transform, &mut JumpVelocity), With<Player>>,
+    mut player_query: Query<(&mut Transform, &mut JumpVelocity, &ActionStateVector), With<Player>>,
     //time: Res<Time>,
 ) {
-    if let Ok((transform, mut jump_velocity)) = player_query.get_single_mut() {
-        //let up_direction = Vec3::new(0.0, 1.0, 0.0);
+    if let Ok((transform, mut jump_velocity, action_state_vector)) = player_query.get_single_mut() {
+
+        // create the time difference between last and second to last input, as well as the last two inputs, only if the number of inputs is greater than 2
+        let (direction_jump_time_difference, (recent_key_first, recent_key_second)) = if action_state_vector.action_vector.len() >= 2 {
+            // direction_jump_time_difference is the difference between the time values of the two most recent action time vector values
+            // we need to create a recent action vector
+            // let recent_action_vector = action_state_vector.action_vector.as_slice()[action_state_vector.action_vector.len()-3..].to_vec();
+            let recent_action_vector = action_state_vector.action_vector.as_slice()[action_state_vector.action_vector.len()-2..].to_vec();
+            let recent_time_difference = recent_action_vector[1].1 - recent_action_vector[0].1;
+            let recent_key_first = recent_action_vector[0].0;
+            let recent_key_second = recent_action_vector[1].0;
+            (recent_time_difference, (recent_key_first, recent_key_second))
+        } else {
+            // give default info for time difference and inputs
+            (500.0, (KeyCode::Key1, KeyCode::Key2))
+        };
+
+
+/*
+           ending_index = if keyboard_input.just_pressed(KeyCode::J) 
+                && second_first_difference <= SPECIAL_MOVE_BUFFER_TIME 
+                && third_second_difference <= SPECIAL_MOVE_BUFFER_TIME
+                && recent_key_first == KeyCode::S
+                && recent_key_second == KeyCode::D
+                && recent_key_third == KeyCode::J
+ */
 
         if keyboard_input.just_pressed(KeyCode::Space) {
             println!("I just jumped");
             jump_velocity.vertical_velocity = PLAYER_SPEED;
+            
+            if direction_jump_time_difference <= DIRECTION_JUMP_BUFFER_TIME {
+                match recent_key_first {
+                    KeyCode::A => jump_velocity.horizontal_velocity = -1.0 * PLAYER_SPEED,
+                    KeyCode::D => jump_velocity.horizontal_velocity = PLAYER_SPEED,
+                    _ => jump_velocity.horizontal_velocity = jump_velocity.horizontal_velocity,
+                }
+            } 
+            
+            
+            
         }
         
     }
 }
+
+
+
+
 
 // changing the indeces works!
 // now just need a way to make the coding process more efficient
@@ -481,12 +522,12 @@ pub fn confine_player_movement(
 
 // Check if the player is grounded
 pub fn ground_check(
-    player_query: Query<(&Transform, &EntitySizeCollision), With<Player>>,
+    mut player_query: Query<(&Transform, &EntitySizeCollision, &mut JumpVelocity), With<Player>>,
     floor_query: Query<(&Transform, &EntitySizeCollision), With<Floor>>,
     player_state: Res<State<PlayerState>>,
     mut next_player_state: ResMut<NextState<PlayerState>>,
 ) {
-    if let Ok((player_transform, player_collision)) = player_query.get_single() {
+    if let Ok((player_transform, player_collision, mut jump_velocity)) = player_query.get_single_mut() {
         for (floor_transform, floor_collision) in floor_query.iter() {
             // check collision get boolean
             //let distance = player_transform.translation.distance(floor_transform.translation);
@@ -505,6 +546,9 @@ pub fn ground_check(
                     // switch to ground state
                     next_player_state.set(PlayerState::Grounded);
                     println!("I'm grounded");
+
+                    // we also want to force horizontal velocity to be 0 here
+                    jump_velocity.horizontal_velocity = 0.0;
                 }
             } else {
             // if boolean is false ()

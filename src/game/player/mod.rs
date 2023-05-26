@@ -17,6 +17,7 @@ pub const PLAYER_SPEED: f32 = 400.0;
 pub const PLAYER_SIZE: f32 = 64.0; // This is the player sprite size
 
 pub const SPECIAL_MOVE_BUFFER_TIME: f32 = 0.5;
+pub const DIRECTION_JUMP_BUFFER_TIME: f32 = 0.5;
 
 pub struct PlayerPlugin;
 

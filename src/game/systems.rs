@@ -15,6 +15,9 @@ use crate::game::TILE_SIZE;
 
 use super::player::components::JumpVelocity;
 
+
+pub const TEMP_VEL_MOD: f32 = 10.0;
+
 pub fn toggle_simulation_state(
     // needs access to keyboard input
     keyboard_input: Res<Input<KeyCode>>,
@@ -62,23 +65,30 @@ pub fn apply_gravity_and_velocity(
 ) {
     for (mut entity_transform, entity_gravity, mut entity_velocity) in transform_gravity_velocity_query.iter_mut() {
         // refine code, edit out later once you solidify on the constants you want
-        let temp_vel_mod = 10.0;
+        let temp_vel_mod = TEMP_VEL_MOD;
         
         let gravity_direction = Vec3::new(0.0, -entity_gravity.gravity_constant, 0.0);
         let velocity_direction = Vec3::new(entity_velocity.horizontal_velocity, entity_velocity.vertical_velocity, 0.0);
         entity_transform.translation += temp_vel_mod * velocity_direction * time.delta_seconds() + gravity_direction * time.delta_seconds();
         //println!("Applying gravity");
 
-        // reduce velocity over time
+        // reduce vertical velocity over time
         if entity_velocity.vertical_velocity > 0.0 {
             entity_velocity.vertical_velocity -= entity_gravity.gravity_constant;
         } else {
             entity_velocity.vertical_velocity = 0.0;
         }
 
+
+
         //println!("Printing vertical velocity: {}", entity_velocity.vertical_velocity);
     }
 }
+
+
+
+
+
 
 // ------- //
 
