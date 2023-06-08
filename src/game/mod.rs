@@ -8,9 +8,12 @@ mod components;
 pub mod resources;
 mod player;
 
+mod enemy;
+
 use bevy::prelude::*;
 
 use player::PlayerPlugin;
+use enemy::EnemyPlugin;
 
 // use crate::etc. for when trying to access files at a higher level
 use crate::AppState;
@@ -41,6 +44,7 @@ impl Plugin for GamePlugin {
             // Plugins to add when inside AppState::Game
             // Player plugin
             .add_plugin(PlayerPlugin)
+            .add_plugin(EnemyPlugin)
             .add_systems(
                 (
                     animate_sprite,

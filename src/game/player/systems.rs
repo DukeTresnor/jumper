@@ -15,7 +15,7 @@ use crate::game::player::components::*;
 use crate::game::player::PlayerState;
 use crate::game::player::GroundedState;
 use crate::game::player::AirState;
-use crate::game::player::{PLAYER_SPEED, PLAYER_SIZE};
+use crate::game::player::{PLAYER_SPEED_VERTICAL, PLAYER_SPEED_HORIZONTAL, PLAYER_SIZE};
 use crate::game::GRAVITY;
 
 use bevy::input::ButtonState;
@@ -40,7 +40,7 @@ pub fn spawn_player(
             asset_server.load("sprites/lenneth/test_sprite_sheet/test_lenneth_spritesheet_spread_mod.png"),
             // Inputs here are the size of each individual sprite inside the spritesheet
             //Vec2::new(64.0, 64.0), 12, 1, None, None
-            Vec2::new(96.0, 64.0), 17, 3, None, None
+            Vec2::new(96.0, 64.0), 17, 4, None, None
         );
     let texture_atlas_handle = texture_atlases.add(texture_atlas);
     let animation_indices = AnimationIndices { first: 0, last: 11 };
@@ -97,33 +97,82 @@ pub fn despawn_player(
 // we again also need the time resource
 pub fn player_movement(
     keyboard_input: Res<Input<KeyCode>>,
-    mut player_query: Query<&mut Transform, With<Player>>,
+    mut player_query: Query<(&mut Transform, &mut AnimationIndices, &mut TextureAtlasSprite), With<Player>>,
     time: Res<Time>,
     grounded_state: Res<State<GroundedState>>,
+    mut next_player_state: ResMut<NextState<GroundedState>>,
 ) {
     // Get the single mutable thing that exists in player_query, and store it into the transform variable
     // If transform gets a Transform component, continue the if block
-    if let Ok(mut transform) = player_query.get_single_mut() {
+    if let Ok((mut transform, mut animation_indeces, mut texture_atlas_sprite_sprite_sheet)) = player_query.get_single_mut() {
         if grounded_state.0 == GroundedState::Neutral {
 
             let mut direction = Vec3::ZERO;
             // Handle the different keyboard inputs that dictate movement
             if keyboard_input.pressed(KeyCode::A) {
                 direction += Vec3::new(-1.0, 0.0, 0.0);
+                // set indeces to walking animation
             }
             if keyboard_input.pressed(KeyCode::D) {
                 direction += Vec3::new(1.0, 0.0, 0.0);
+                // set indeces to walking animation
             }
             //
             if direction.length() > 0.0 {
                 direction = direction.normalize();
             }
-            transform.translation += direction * PLAYER_SPEED * time.delta_seconds();
+            transform.translation += direction * PLAYER_SPEED_HORIZONTAL * time.delta_seconds();
+
+            let mut ending_index = if keyboard_input.pressed(KeyCode::S) {
+                // crouch -- issue right now is that system runs whole animation, locking you out of other animations
+                //  the goal here then is to switch in and out of Neutral and Crouching GroundedStates as you enter and exit those states
+                //  use a new system? (Toggle crouch and release)
+                next_player_state.set(GroundedState::Crouching);
+                animation_indeces.first = 50;
+                animation_indeces.last = 55;
+                texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+                //next_player_state.set(PlayerState::Attack);
+                animation_indeces.last
+            }
+            else {
+                animation_indeces.last
+            };
 
         }
         
     }
 }
+
+
+/*
+        if grounded_state.0 == GroundedState::Neutral {
+            let mut ending_index = if keyboard_input.just_pressed(KeyCode::J) {
+                
+                next_grounded_state.set(GroundedState::Attack);
+                //if player_state.0 == PlayerState::Grounded {
+                //    animation_indeces.first = 11;
+                //    animation_indeces.last = 16;
+                //    texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+                //    next_player_state.set(PlayerState::Attack);
+                //}
+                //animation_indeces.first = 11;
+                animation_indeces.first = 18;
+                //animation_indeces.last = 16;
+                animation_indeces.last = 21;
+                texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+                //next_player_state.set(PlayerState::Attack);
+                animation_indeces.last
+            }
+            else {
+                animation_indeces.last
+            };
+            
+
+ */
+
+
+
+
 
 // temporary //
 
@@ -145,7 +194,7 @@ pub fn temp_player_up_movement(
         if direction.length() > 0.0 {
             direction = direction.normalize();
         }
-        transform.translation += direction * PLAYER_SPEED * time.delta_seconds();
+        transform.translation += direction * PLAYER_SPEED_VERTICAL * time.delta_seconds();
     }
 }
 
@@ -155,10 +204,12 @@ pub fn temp_player_up_movement(
 pub fn player_jump(
     keyboard_input: Res<Input<KeyCode>>,
     mut player_query: Query<(&mut Transform, &mut JumpVelocity, &ActionStateVector), With<Player>>,
-    //time: Res<Time>,
+    player_state: Res<State<PlayerState>>,
+    grounded_state: Res<State<GroundedState>>,
 ) {
     if let Ok((transform, mut jump_velocity, action_state_vector)) = player_query.get_single_mut() {
 
+        // Jumping left or right
         // create the time difference between last and second to last input, as well as the last two inputs, only if the number of inputs is greater than 2
         let (direction_jump_time_difference, (recent_key_first, recent_key_second)) = if action_state_vector.action_vector.len() >= 2 {
             // direction_jump_time_difference is the difference between the time values of the two most recent action time vector values
@@ -175,23 +226,14 @@ pub fn player_jump(
         };
 
 
-/*
-           ending_index = if keyboard_input.just_pressed(KeyCode::J) 
-                && second_first_difference <= SPECIAL_MOVE_BUFFER_TIME 
-                && third_second_difference <= SPECIAL_MOVE_BUFFER_TIME
-                && recent_key_first == KeyCode::S
-                && recent_key_second == KeyCode::D
-                && recent_key_third == KeyCode::J
- */
-
-        if keyboard_input.just_pressed(KeyCode::Space) {
+        if keyboard_input.just_pressed(KeyCode::Space) && player_state.0 == PlayerState::Grounded && grounded_state.0 == GroundedState::Neutral {
             println!("I just jumped");
-            jump_velocity.vertical_velocity = PLAYER_SPEED;
+            jump_velocity.vertical_velocity = PLAYER_SPEED_VERTICAL;
             
             if direction_jump_time_difference <= DIRECTION_JUMP_BUFFER_TIME {
                 match recent_key_first {
-                    KeyCode::A => jump_velocity.horizontal_velocity = -1.0 * PLAYER_SPEED,
-                    KeyCode::D => jump_velocity.horizontal_velocity = PLAYER_SPEED,
+                    KeyCode::A => jump_velocity.horizontal_velocity = -1.0 * PLAYER_SPEED_HORIZONTAL,
+                    KeyCode::D => jump_velocity.horizontal_velocity = PLAYER_SPEED_HORIZONTAL,
                     _ => jump_velocity.horizontal_velocity = jump_velocity.horizontal_velocity,
                 }
             } 
@@ -472,7 +514,7 @@ pub fn player_reset_to_neutral(
     mut next_air_state: ResMut<NextState<AirState>>,
 ) {
     if let Ok((mut animation_indeces, mut texture_atlas_sprite_sprite_sheet)) = player_query.get_single_mut() {
-        if texture_atlas_sprite_sprite_sheet.index == animation_indeces.last && (grounded_state.0 == GroundedState::Attack || air_state.0 == AirState::Attack) {
+        if texture_atlas_sprite_sprite_sheet.index == animation_indeces.last && (grounded_state.0 == GroundedState::Attack || air_state.0 == AirState::Attack || grounded_state.0 == GroundedState::Crouching) {
             // reset animation indeces to the default for the particular state
             animation_indeces.first = 0;
             animation_indeces.last = 11;
@@ -557,25 +599,6 @@ pub fn ground_check(
                     next_player_state.set(PlayerState::Air);
                     //println!("I'm in the air");
                 }
-            }
-        }
-    }
-}
-
-
-// this system doesn't work right now
-// make a new system that, when the player is grounded, sets their y position to the floor's y position
-pub fn _force_player_to_ground(
-    mut player_query: Query<(&mut Transform, &EntitySizeCollision), With<Player>>,
-    floor_query: Query<(&Transform, &EntitySizeCollision), With<Floor>>,
-) {
-    if let Ok((mut player_transform, player_collision)) = player_query.get_single_mut() {
-        for (floor_transform, floor_collision) in floor_query.iter() {
-            let vertical_distance = player_transform.translation.y - floor_transform.translation.y;
-            let vertical_player_length = player_collision.vertical_entity_size / 2.0;
-            let vertical_floor_length = floor_collision.vertical_entity_size / 2.0;
-            if vertical_distance < vertical_player_length + vertical_floor_length {
-                player_transform.translation.y = floor_transform.translation.y - player_collision.vertical_entity_size;
             }
         }
     }
