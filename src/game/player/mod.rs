@@ -13,8 +13,9 @@ use crate::AppState;
 use crate::game::SimulationState;
 
 
-pub const PLAYER_SPEED: f32 = 400.0;
-pub const PLAYER_SIZE: f32 = 64.0; // This is the player sprite size
+pub const PLAYER_SPEED_VERTICAL: f32 = 400.0;
+pub const PLAYER_SPEED_HORIZONTAL: f32 = 100.0;
+pub const PLAYER_SIZE: f32 = 64.0; // This is the player sprite size, not necessarily the size of each frame in the spritesheet
 
 pub const SPECIAL_MOVE_BUFFER_TIME: f32 = 0.5;
 pub const DIRECTION_JUMP_BUFFER_TIME: f32 = 0.5;
@@ -72,6 +73,7 @@ pub enum GroundedState {
     #[default]
     Neutral,
     Attack,
+    Crouching,
 }
 
 #[derive(States, Debug, Clone, Copy, Eq, PartialEq, Hash, Default)]
