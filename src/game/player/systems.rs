@@ -44,7 +44,21 @@ pub fn spawn_player(
         );
     let texture_atlas_handle = texture_atlases.add(texture_atlas);
     let animation_indices = AnimationIndices { first: 0, last: 11 };
-    
+
+
+    let texture_atlas_second = 
+        TextureAtlas::from_grid(
+            //asset_server.load("sprites/lenneth/idle_anim/idle_spritesheet.png"),
+            //asset_server.load("sprites/lenneth/test_sprite_sheet/spritesheet.png"),
+            asset_server.load("sprites/lenneth/test_sprite_sheet/test_lenneth_spritesheet_spread_mod.png"),
+            // Inputs here are the size of each individual sprite inside the spritesheet
+            //Vec2::new(64.0, 64.0), 12, 1, None, None
+            Vec2::new(96.0, 64.0), 17, 4, None, None
+        );
+
+    let texture_atlas_handle_second = texture_atlases.add(texture_atlas_second);
+    let animation_indices_second = AnimationIndices { first: 0, last: 11 };
+
     // spawn a Player with the Player and Gravity components
     commands.spawn(
         (
@@ -56,7 +70,7 @@ pub fn spawn_player(
             //    ..default()
             //},
             SpriteSheetBundle {
-                transform: Transform::from_xyz(window.width() / 2.0, window.height() / 2.0, 0.0),
+                transform: Transform::from_xyz(window.width() / 4.0, window.height() / 2.0, 0.0),
                 texture_atlas: texture_atlas_handle,
                 sprite: TextureAtlasSprite::new(animation_indices.first),
                 ..default()
@@ -82,16 +96,51 @@ pub fn spawn_player(
             animation_indices,
             AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
         )
+
     );
+
+    commands.spawn(
+        (
+            SpriteSheetBundle {
+                transform: Transform::from_xyz(window.width() / 2.0, window.height() / 2.0, 0.0),
+                texture_atlas: texture_atlas_handle_second,
+                sprite: TextureAtlasSprite::new(animation_indices_second.first),
+                ..default()
+            },
+            Player {},
+            Gravity {
+                gravity_constant: GRAVITY,
+            },
+            EntitySizeCollision {
+                horizontal_entity_size: PLAYER_SIZE,
+                vertical_entity_size: PLAYER_SIZE,
+            },
+            JumpVelocity {
+                horizontal_velocity: 0.0,
+                vertical_velocity: 0.0,
+            },
+            ActionStateVector {
+                action_vector: Vec::new(),
+            },
+            NegativeEdgeStateVector {
+                negative_edge_vector: Vec::new()
+            },
+            animation_indices_second,
+            AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
+        )
+    );
+
 }
 
 pub fn despawn_player(
     mut commands: Commands,
     player_query: Query<Entity, With<Player>>,
+    //player_query: Query<(Entity, &Player)>,
 ) {
     // If player_entity exists because the player_query contains some entity with the Player component,
     //   we want to despawn that player entity with commands
-    if let Ok(player_entity) = player_query.get_single() {
+    //if let Ok(player_entity) = player_query.get_single() {
+    for player_entity in player_query.iter() {
         commands.entity(player_entity).despawn()
     }
 }
@@ -107,7 +156,8 @@ pub fn player_movement(
 ) {
     // Get the single mutable thing that exists in player_query, and store it into the transform variable
     // If transform gets a Transform component, continue the if block
-    if let Ok((mut transform, mut animation_indeces, mut texture_atlas_sprite_sprite_sheet)) = player_query.get_single_mut() {
+    //if let Ok((mut transform, mut animation_indeces, mut texture_atlas_sprite_sprite_sheet)) = player_query.get_single_mut() {
+    for (mut transform, mut animation_indeces, mut texture_atlas_sprite_sprite_sheet) in player_query.iter_mut() {
         if grounded_state.0 == GroundedState::Neutral {
 
             let mut direction = Vec3::ZERO;
@@ -151,7 +201,7 @@ pub fn player_movement(
                 texture_atlas_sprite_sprite_sheet index = animation_indeces first
                 animation_indeces last <-- this is returned
 
-            idea is if we detect a releaase S while the player is crouching, set the indeces to the neutral animation, and set state to neutral
+            idea is if we detect a release S while the player is crouching, set the indeces to the neutral animation, and set state to neutral
             same process would work for walking
              */
 
@@ -198,7 +248,8 @@ pub fn temp_player_up_movement(
     mut player_query: Query<&mut Transform, With<Player>>,
     time: Res<Time>,
 ) {
-    if let Ok(mut transform) = player_query.get_single_mut() {
+    //if let Ok(mut transform) = player_query.get_single_mut() {
+    for mut transform in player_query.iter_mut() {
         let mut direction = Vec3::ZERO;
         // Handle the different keyboard inputs that dictate movement
         if keyboard_input.pressed(KeyCode::W) {
@@ -224,8 +275,8 @@ pub fn player_jump(
     player_state: Res<State<PlayerState>>,
     grounded_state: Res<State<GroundedState>>,
 ) {
-    if let Ok((transform, mut jump_velocity, action_state_vector)) = player_query.get_single_mut() {
-
+    //if let Ok((transform, mut jump_velocity, action_state_vector)) = player_query.get_single_mut() {
+    for (transform, mut jump_velocity, action_state_vector) in player_query.iter_mut() {
         // Jumping left or right
         // create the time difference between last and second to last input, as well as the last two inputs, only if the number of inputs is greater than 2
         let (direction_jump_time_difference, (recent_key_first, recent_key_second)) = if action_state_vector.action_vector.len() >= 2 {
@@ -242,11 +293,11 @@ pub fn player_jump(
             (500.0, (KeyCode::Key1, KeyCode::Key2))
         };
 
-
         if keyboard_input.just_pressed(KeyCode::Space) && player_state.0 == PlayerState::Grounded && grounded_state.0 == GroundedState::Neutral {
             println!("I just jumped");
             jump_velocity.vertical_velocity = PLAYER_SPEED_VERTICAL;
             
+
             if direction_jump_time_difference <= DIRECTION_JUMP_BUFFER_TIME {
                 match recent_key_first {
                     KeyCode::A => jump_velocity.horizontal_velocity = -1.0 * PLAYER_SPEED_HORIZONTAL,
@@ -314,8 +365,8 @@ pub fn player_ground_attack(
     // this probably goes with the external ending system that resets states...
     //let mut ending_index = 0;
 
-    if let Ok((action_state_vector, mut animation_indeces, mut texture_atlas_sprite_sprite_sheet)) = player_query.get_single_mut() {
-        
+    //if let Ok((action_state_vector, mut animation_indeces, mut texture_atlas_sprite_sprite_sheet)) = player_query.get_single_mut() {
+    for (action_state_vector, mut animation_indeces, mut texture_atlas_sprite_sprite_sheet) in player_query.iter_mut() {    
         let ((second_first_difference, third_second_difference), (recent_key_first, recent_key_second, recent_key_third)) = if action_state_vector.action_vector.len() >= 3 {
         //if !action_state_vector.action_vector.is_empty() {
             // assign last several inputs into a variable to check
@@ -530,7 +581,8 @@ pub fn player_reset_to_neutral(
     air_state: Res<State<AirState>>,
     mut next_air_state: ResMut<NextState<AirState>>,
 ) {
-    if let Ok((mut animation_indeces, mut texture_atlas_sprite_sprite_sheet)) = player_query.get_single_mut() {
+    //if let Ok((mut animation_indeces, mut texture_atlas_sprite_sprite_sheet)) = player_query.get_single_mut() {
+    for (mut animation_indeces, mut texture_atlas_sprite_sprite_sheet) in player_query.iter_mut() {
         if texture_atlas_sprite_sprite_sheet.index == animation_indeces.last && (grounded_state.0 == GroundedState::Attack || air_state.0 == AirState::Attack || grounded_state.0 == GroundedState::Crouching) {
             // reset animation indeces to the default for the particular state
             animation_indeces.first = 0;
@@ -551,7 +603,8 @@ pub fn confine_player_movement(
     mut player_query: Query<&mut Transform, With<Player>>,
     window_query: Query<&Window, With<PrimaryWindow>>,
 ) {
-    if let Ok(mut player_transform) = player_query.get_single_mut() {
+    //if let Ok(mut player_transform) = player_query.get_single_mut() {
+    for mut player_transform in player_query.iter_mut() {    
         let window = window_query.get_single().unwrap();
         let half_player_size = PLAYER_SIZE / 2.0;
         let x_pos_min = 0.0 + half_player_size;
@@ -586,7 +639,8 @@ pub fn ground_check(
     player_state: Res<State<PlayerState>>,
     mut next_player_state: ResMut<NextState<PlayerState>>,
 ) {
-    if let Ok((player_transform, player_collision, mut jump_velocity)) = player_query.get_single_mut() {
+    //if let Ok((player_transform, player_collision, mut jump_velocity)) = player_query.get_single_mut() {
+    for (player_transform, player_collision, mut jump_velocity) in player_query.iter_mut() {
         for (floor_transform, floor_collision) in floor_query.iter() {
             // check collision get boolean
             //let distance = player_transform.translation.distance(floor_transform.translation);
@@ -597,10 +651,12 @@ pub fn ground_check(
             let _horizontal_floor_length = floor_collision.horizontal_entity_size / 2.0;
             let vertical_floor_length = floor_collision.vertical_entity_size / 2.0;
             
+        
+
             // if (horizontal_distance < horizontal_player_length + horizontal_floor_length)
             if vertical_distance < vertical_player_length + vertical_floor_length {
 
-            // if boolean is true {}            
+                // if boolean is true {}            
                 if player_state.0 == PlayerState::Air {
                     // switch to ground state
                     next_player_state.set(PlayerState::Grounded);
@@ -610,7 +666,7 @@ pub fn ground_check(
                     jump_velocity.horizontal_velocity = 0.0;
                 }
             } else {
-            // if boolean is false ()
+                // if boolean is false ()
                 if player_state.0 == PlayerState::Grounded {
                     // switch to air state
                     next_player_state.set(PlayerState::Air);
@@ -632,7 +688,8 @@ pub fn populate_player_action_vector(
     mut input_buffer_timer: ResMut<InputBufferTimer>
 ) {
     // If we get a valid player entity, have player_action_state_vector get that entity's ActioniStateVector component
-    if let Ok((mut player_action_state_vector, mut player_negative_edge_vector)) = player_query.get_single_mut() {
+    //if let Ok((mut player_action_state_vector, mut player_negative_edge_vector)) = player_query.get_single_mut() {
+    for (mut player_action_state_vector, mut player_negative_edge_vector) in player_query.iter_mut() {
         
         // printing
         println!("{:?}", player_action_state_vector.action_vector);
