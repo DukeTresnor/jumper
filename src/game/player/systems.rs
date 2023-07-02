@@ -76,6 +76,9 @@ pub fn spawn_player(
             ActionStateVector {
                 action_vector: Vec::new(),
             },
+            NegativeEdgeStateVector {
+                negative_edge_vector: Vec::new()
+            },
             animation_indices,
             AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
         )
@@ -123,6 +126,8 @@ pub fn player_movement(
             }
             transform.translation += direction * PLAYER_SPEED_HORIZONTAL * time.delta_seconds();
 
+
+            
             let mut ending_index = if keyboard_input.pressed(KeyCode::S) {
                 // crouch -- issue right now is that system runs whole animation, locking you out of other animations
                 //  the goal here then is to switch in and out of Neutral and Crouching GroundedStates as you enter and exit those states
@@ -137,6 +142,18 @@ pub fn player_movement(
             else {
                 animation_indeces.last
             };
+
+            /*
+            let mut ending index = if keyboard event . released( KeyCode::S ) && player state == GroundedState::Crouching
+                next player state .set( GroundedState::Neutral)
+                animation_indeces first --> ...
+                animation_indeces last --> ...
+                texture_atlas_sprite_sprite_sheet index = animation_indeces first
+                animation_indeces last <-- this is returned
+
+            idea is if we detect a releaase S while the player is crouching, set the indeces to the neutral animation, and set state to neutral
+            same process would work for walking
+             */
 
         }
         
@@ -608,14 +625,14 @@ pub fn ground_check(
 
 // Debug system -- might not need to be a debug...
 pub fn populate_player_action_vector(
-    mut player_query: Query<&mut ActionStateVector, With<Player>>,
+    mut player_query: Query<(&mut ActionStateVector, &mut NegativeEdgeStateVector), With<Player>>,
     //keyboard_input: Res<Input<KeyCode>>,
     mut keyboard_event_reader: EventReader<KeyboardInput>,
     time: Res<Time>,
     mut input_buffer_timer: ResMut<InputBufferTimer>
 ) {
     // If we get a valid player entity, have player_action_state_vector get that entity's ActioniStateVector component
-    if let Ok(mut player_action_state_vector) = player_query.get_single_mut() {
+    if let Ok((mut player_action_state_vector, mut player_negative_edge_vector)) = player_query.get_single_mut() {
         
         // printing
         println!("{:?}", player_action_state_vector.action_vector);
@@ -637,7 +654,9 @@ pub fn populate_player_action_vector(
             if !player_action_state_vector.action_vector.is_empty() {
                 player_action_state_vector.action_vector.remove(0);
             }
-            
+            if !player_negative_edge_vector.negative_edge_vector.is_empty() {
+                player_negative_edge_vector.negative_edge_vector.remove(0);
+            }
         }
 
         for keyboard_event in keyboard_event_reader.iter() {
@@ -647,8 +666,9 @@ pub fn populate_player_action_vector(
                     player_action_state_vector.action_vector.push((keyboard_event.key_code.unwrap(), time.elapsed_seconds()) );
                 }
                 ButtonState::Released => {
-                    //println!("Key release: {:?} ({})", keyboard_event.key_code, keyboard_event.scan_code);
-                    //player_action_state_vector.action_vector.push((keyboard_event.key_code.unwrap(), time.elapsed_seconds()) );
+                    println!("Key release: {:?} ({})", keyboard_event.key_code, keyboard_event.scan_code);
+                    player_negative_edge_vector.negative_edge_vector.push((keyboard_event.key_code.unwrap(), time.elapsed_seconds()) );
+
                 }
             }
             // add the keyboard_event to the action state vector reference.

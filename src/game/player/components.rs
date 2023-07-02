@@ -21,3 +21,7 @@ pub struct ActionStateVector {
     pub action_vector: Vec<(KeyCode, f32)>,
 }
 
+#[derive(Component)]
+pub struct  NegativeEdgeStateVector {
+    pub negative_edge_vector: Vec<(KeyCode, f32)>,
+}
