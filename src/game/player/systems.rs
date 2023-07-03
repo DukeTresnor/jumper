@@ -169,7 +169,7 @@ pub fn player_movement(
             if keyboard_input.pressed(KeyCode::D) {
                 direction += Vec3::new(1.0, 0.0, 0.0);
                 // set indeces to walking animation
-            }
+            }  
             //
             if direction.length() > 0.0 {
                 direction = direction.normalize();
