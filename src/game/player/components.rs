@@ -1,5 +1,8 @@
 // game/player/components.rs
 
+// why is this here?
+//use std::thread::local_impl::Key;
+
 use bevy::prelude::*;
 
 // Define Player component
@@ -24,4 +27,30 @@ pub struct ActionStateVector {
 #[derive(Component)]
 pub struct  NegativeEdgeStateVector {
     pub negative_edge_vector: Vec<(KeyCode, f32)>,
+}
+
+
+#[derive(Component)]
+pub struct PlayerInput {
+    pub up: bool,
+    pub down: bool,
+    pub left: bool,
+    pub right: bool,
+    pub light: bool,
+    pub medium: bool,
+    pub heavy: bool,
+    pub special: bool,
+}
+
+
+#[derive(Component)]
+pub struct InputBinding {
+    pub up_bind: KeyCode,
+    pub down_bind: KeyCode,
+    pub left_bind: KeyCode,
+    pub right_bind: KeyCode,
+    pub light_bind: KeyCode,
+    pub medium_bind: KeyCode,
+    pub heavy_bind: KeyCode,
+    pub special_bind: KeyCode,
 }

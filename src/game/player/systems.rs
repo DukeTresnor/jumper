@@ -95,6 +95,27 @@ pub fn spawn_player(
             },
             animation_indices,
             AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
+            PlayerInput {
+                up: false,
+                down: false,
+                left: false,
+                right: false,
+                light: false,
+                medium: false,
+                heavy: false,
+                special: false,
+            },
+            InputBinding {
+                up_bind: KeyCode::W,
+                down_bind: KeyCode::S,
+                left_bind: KeyCode::A,
+                right_bind: KeyCode::D,
+                light_bind: KeyCode::J,
+                medium_bind: KeyCode::K,
+                heavy_bind: KeyCode::L,
+                special_bind: KeyCode::O,
+            },
+            
         )
 
     );
@@ -127,6 +148,16 @@ pub fn spawn_player(
             },
             animation_indices_second,
             AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
+            InputBinding {
+                up_bind: KeyCode::T,
+                down_bind: KeyCode::G,
+                left_bind: KeyCode::F,
+                right_bind: KeyCode::H,
+                light_bind: KeyCode::X,
+                medium_bind: KeyCode::C,
+                heavy_bind: KeyCode::V,
+                special_bind: KeyCode::B,
+            },
         )
     );
 
@@ -211,31 +242,7 @@ pub fn player_movement(
 }
 
 
-/*
-        if grounded_state.0 == GroundedState::Neutral {
-            let mut ending_index = if keyboard_input.just_pressed(KeyCode::J) {
-                
-                next_grounded_state.set(GroundedState::Attack);
-                //if player_state.0 == PlayerState::Grounded {
-                //    animation_indeces.first = 11;
-                //    animation_indeces.last = 16;
-                //    texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
-                //    next_player_state.set(PlayerState::Attack);
-                //}
-                //animation_indeces.first = 11;
-                animation_indeces.first = 18;
-                //animation_indeces.last = 16;
-                animation_indeces.last = 21;
-                texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
-                //next_player_state.set(PlayerState::Attack);
-                animation_indeces.last
-            }
-            else {
-                animation_indeces.last
-            };
-            
 
- */
 
 
 
@@ -340,7 +347,7 @@ pub fn player_ground_attack(
     // we don't actually need the texture atlas itself I think, because all we should need to do is change the AnimationIndeces
     // we do need the texture atlas, because we need to access the current index of the texture atlas
 
-    mut commands: Commands,
+    mut commands: Commands, // <-- used for spawning projectiles I think?
     mut player_query: Query<(&ActionStateVector, &mut AnimationIndices, &mut TextureAtlasSprite), With<Player>>,
     keyboard_input: Res<Input<KeyCode>>,
     mut keyboard_event_reader: EventReader<KeyboardInput>,
@@ -692,7 +699,7 @@ pub fn populate_player_action_vector(
     for (mut player_action_state_vector, mut player_negative_edge_vector) in player_query.iter_mut() {
         
         // printing
-        println!("{:?}", player_action_state_vector.action_vector);
+        //println!("{:?}", player_action_state_vector.action_vector);
         //for (key_code, action_timer_value) in &player_action_state_vector.action_vector {
         //    println!("{:?}", key_code);
         //    println!("{:?}", action_timer_value);
@@ -723,7 +730,7 @@ pub fn populate_player_action_vector(
                     player_action_state_vector.action_vector.push((keyboard_event.key_code.unwrap(), time.elapsed_seconds()) );
                 }
                 ButtonState::Released => {
-                    println!("Key release: {:?} ({})", keyboard_event.key_code, keyboard_event.scan_code);
+                    //println!("Key release: {:?} ({})", keyboard_event.key_code, keyboard_event.scan_code);
                     player_negative_edge_vector.negative_edge_vector.push((keyboard_event.key_code.unwrap(), time.elapsed_seconds()) );
 
                 }
@@ -739,3 +746,41 @@ pub fn populate_player_action_vector(
         
     }
 }
+
+
+
+// -- Section for re doing input system -- //
+
+// mut player_query: Query<(&mut ActionStateVector, &mut NegativeEdgeStateVector), With<Player>>,
+
+
+pub fn testing_new_input_system(
+    //
+    mut player_query: Query<(&mut PlayerInput, &InputBinding), With<Player>>,
+    keyboard_input: Res<Input<KeyCode>>,
+) {
+    //
+    for (mut player_inputs, player_keybinds) in player_query.iter_mut() {
+        player_inputs.up = keyboard_input.pressed(player_keybinds.up_bind);
+        player_inputs.down = keyboard_input.pressed(player_keybinds.down_bind);
+        player_inputs.left = keyboard_input.pressed(player_keybinds.left_bind);
+        player_inputs.right = keyboard_input.pressed(player_keybinds.right_bind);
+        player_inputs.light = keyboard_input.pressed(player_keybinds.light_bind);
+        player_inputs.medium = keyboard_input.pressed(player_keybinds.medium_bind);
+        player_inputs.heavy = keyboard_input.pressed(player_keybinds.heavy_bind);
+        player_inputs.special = keyboard_input.pressed(player_keybinds.special_bind);
+        println!("player_inputs: {}", player_inputs.up);
+        println!("player_inputs: {}", player_inputs.down);
+        println!("player_inputs: {}", player_inputs.left);
+        println!("player_inputs: {}", player_inputs.right);
+        println!("player_inputs: {}", player_inputs.light);
+        println!("player_inputs: {}", player_inputs.medium);
+        println!("player_inputs: {}", player_inputs.heavy);
+        println!("player_inputs: {}", player_inputs.special);
+        
+    }
+}
+
+
+
+// -- Section for re doing input system -- //

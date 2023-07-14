@@ -37,6 +37,7 @@ impl Plugin for PlayerPlugin {
                     temp_player_up_movement,
                     ground_check,
                     player_reset_to_neutral,
+                    testing_new_input_system,
                 )
                 .in_set(OnUpdate(AppState::Game))
                 .in_set(OnUpdate(SimulationState::Running))
