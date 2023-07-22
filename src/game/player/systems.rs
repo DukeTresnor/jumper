@@ -12,9 +12,8 @@ use crate::game::components::*;
 use crate::game::player;
 use crate::game::resources::*;
 use crate::game::player::components::*;
-use crate::game::player::PlayerState;
-use crate::game::player::GroundedState;
-use crate::game::player::AirState;
+//use crate::game::player::PlayerState;
+//use crate::game::player::AttackState;
 use crate::game::player::{PLAYER_SPEED_VERTICAL, PLAYER_SPEED_HORIZONTAL, PLAYER_SIZE};
 use crate::game::GRAVITY;
 
@@ -115,6 +114,15 @@ pub fn spawn_player(
                 heavy_bind: KeyCode::L,
                 special_bind: KeyCode::O,
             },
+            MovementState {
+                is_grounded: false,
+            },
+            AttackState {
+                is_attacking: false,
+            },
+            PlayerNumber {
+                player_number: 1,
+            },
             
         )
 
@@ -148,16 +156,35 @@ pub fn spawn_player(
             },
             animation_indices_second,
             AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
-            InputBinding {
-                up_bind: KeyCode::T,
-                down_bind: KeyCode::G,
-                left_bind: KeyCode::F,
-                right_bind: KeyCode::H,
-                light_bind: KeyCode::X,
-                medium_bind: KeyCode::C,
-                heavy_bind: KeyCode::V,
-                special_bind: KeyCode::B,
+            PlayerInput {
+                up: false,
+                down: false,
+                left: false,
+                right: false,
+                light: false,
+                medium: false,
+                heavy: false,
+                special: false,
             },
+            InputBinding {
+                up_bind: KeyCode::Key5,
+                down_bind: KeyCode::T,
+                left_bind: KeyCode::R,
+                right_bind: KeyCode::Y,
+                light_bind: KeyCode::Key7,
+                medium_bind: KeyCode::Key8,
+                heavy_bind: KeyCode::Key9,
+                special_bind: KeyCode::Key0,
+            },
+            MovementState {
+                is_grounded: false,
+            },
+            AttackState {
+                is_attacking: false,
+            },
+            PlayerNumber {
+                player_number: 2,
+            }
         )
     );
 
@@ -176,28 +203,49 @@ pub fn despawn_player(
     }
 }
 
+
+
+
+
 // player_query needs the transform along with player b/c we are trying to move the player
 // we again also need the time resource
 pub fn player_movement(
     keyboard_input: Res<Input<KeyCode>>,
-    mut player_query: Query<(&mut Transform, &mut AnimationIndices, &mut TextureAtlasSprite), With<Player>>,
+    mut player_query: Query<(&mut Transform, &mut AnimationIndices, &mut TextureAtlasSprite, &mut PlayerInput, &mut JumpVelocity, &MovementState, &AttackState), With<Player>>,
     time: Res<Time>,
-    grounded_state: Res<State<GroundedState>>,
-    mut next_player_state: ResMut<NextState<GroundedState>>,
+    //player_state: Res<State<PlayerState>>,
+    //mut next_player_state: ResMut<NextState<PlayerState>>,
+    //attack_state: Res<State<AttackState>>,
+    //mut next_attack_state: ResMut<NextState<AttackState>>,
 ) {
     // Get the single mutable thing that exists in player_query, and store it into the transform variable
     // If transform gets a Transform component, continue the if block
     //if let Ok((mut transform, mut animation_indeces, mut texture_atlas_sprite_sprite_sheet)) = player_query.get_single_mut() {
-    for (mut transform, mut animation_indeces, mut texture_atlas_sprite_sprite_sheet) in player_query.iter_mut() {
-        if grounded_state.0 == GroundedState::Neutral {
+    for (mut transform, mut animation_indeces, mut texture_atlas_sprite_sprite_sheet, mut player_input, mut player_velocity, movement_state, attack_state) in player_query.iter_mut() {
+        if !attack_state.is_attacking && movement_state.is_grounded {
+
+            // holding: player_state.0 == PlayerState::Grounded
 
             let mut direction = Vec3::ZERO;
+
+
+            /* 
+            if player_input.up && player_input.left {
+                // Jump left
+            
+            }
+
+            if player_input.up && player_input.right {
+                // Jump right
+            }
+            */
+
             // Handle the different keyboard inputs that dictate movement
-            if keyboard_input.pressed(KeyCode::A) {
+            if player_input.left {
                 direction += Vec3::new(-1.0, 0.0, 0.0);
                 // set indeces to walking animation
             }
-            if keyboard_input.pressed(KeyCode::D) {
+            if player_input.right {
                 direction += Vec3::new(1.0, 0.0, 0.0);
                 // set indeces to walking animation
             }  
@@ -205,24 +253,27 @@ pub fn player_movement(
             if direction.length() > 0.0 {
                 direction = direction.normalize();
             }
+
+            if player_input.up {
+                // Jumping
+                player_velocity.vertical_velocity = PLAYER_SPEED_VERTICAL;
+                player_velocity.horizontal_velocity = direction.x * PLAYER_SPEED_HORIZONTAL;
+            }
+
             transform.translation += direction * PLAYER_SPEED_HORIZONTAL * time.delta_seconds();
 
 
-            
-            let mut ending_index = if keyboard_input.pressed(KeyCode::S) {
-                // crouch -- issue right now is that system runs whole animation, locking you out of other animations
-                //  the goal here then is to switch in and out of Neutral and Crouching GroundedStates as you enter and exit those states
-                //  use a new system? (Toggle crouch and release)
-                next_player_state.set(GroundedState::Crouching);
+
+            let mut ending_index = if player_input.down {
                 animation_indeces.first = 50;
                 animation_indeces.last = 55;
                 texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
-                //next_player_state.set(PlayerState::Attack);
                 animation_indeces.last
             }
             else {
                 animation_indeces.last
             };
+
 
             /*
             let mut ending index = if keyboard event . released( KeyCode::S ) && player state == GroundedState::Crouching
@@ -260,7 +311,7 @@ pub fn temp_player_up_movement(
         let mut direction = Vec3::ZERO;
         // Handle the different keyboard inputs that dictate movement
         if keyboard_input.pressed(KeyCode::W) {
-            direction += Vec3::new(0.0, 1.0, 0.0);
+            //direction += Vec3::new(0.0, 1.0, 0.0);
         }
         if keyboard_input.pressed(KeyCode::S) {
             direction += Vec3::new(0.0, -1.0, 0.0);
@@ -279,8 +330,8 @@ pub fn temp_player_up_movement(
 pub fn player_jump(
     keyboard_input: Res<Input<KeyCode>>,
     mut player_query: Query<(&mut Transform, &mut JumpVelocity, &ActionStateVector), With<Player>>,
-    player_state: Res<State<PlayerState>>,
-    grounded_state: Res<State<GroundedState>>,
+    //player_state: Res<State<PlayerState>>,
+    //attack_state: Res<State<AttackState>>,
 ) {
     //if let Ok((transform, mut jump_velocity, action_state_vector)) = player_query.get_single_mut() {
     for (transform, mut jump_velocity, action_state_vector) in player_query.iter_mut() {
@@ -300,7 +351,8 @@ pub fn player_jump(
             (500.0, (KeyCode::Key1, KeyCode::Key2))
         };
 
-        if keyboard_input.just_pressed(KeyCode::Space) && player_state.0 == PlayerState::Grounded && grounded_state.0 == GroundedState::Neutral {
+        /*
+        if keyboard_input.just_pressed(KeyCode::Space) && player_state.0 == PlayerState::Grounded && attack_state.0 == AttackState::Neutral {
             println!("I just jumped");
             jump_velocity.vertical_velocity = PLAYER_SPEED_VERTICAL;
             
@@ -312,10 +364,11 @@ pub fn player_jump(
                     _ => jump_velocity.horizontal_velocity = jump_velocity.horizontal_velocity,
                 }
             } 
-            
+           
             
             
         }
+        */
         
     }
 }
@@ -348,11 +401,11 @@ pub fn player_ground_attack(
     // we do need the texture atlas, because we need to access the current index of the texture atlas
 
     mut commands: Commands, // <-- used for spawning projectiles I think?
-    mut player_query: Query<(&ActionStateVector, &mut AnimationIndices, &mut TextureAtlasSprite), With<Player>>,
+    mut player_query: Query<(&ActionStateVector, &mut AnimationIndices, &mut TextureAtlasSprite, &PlayerInput, &MovementState, &mut AttackState), With<Player>>,
     keyboard_input: Res<Input<KeyCode>>,
     mut keyboard_event_reader: EventReader<KeyboardInput>,
-    grounded_state: Res<State<GroundedState>>,
-    mut next_grounded_state: ResMut<NextState<GroundedState>>,
+    //attack_state: Res<State<AttackState>>,
+    //mut next_attack_state: ResMut<NextState<AttackState>>,
     asset_server: Res<AssetServer>,
     time: Res<Time>,
 
@@ -373,7 +426,7 @@ pub fn player_ground_attack(
     //let mut ending_index = 0;
 
     //if let Ok((action_state_vector, mut animation_indeces, mut texture_atlas_sprite_sprite_sheet)) = player_query.get_single_mut() {
-    for (action_state_vector, mut animation_indeces, mut texture_atlas_sprite_sprite_sheet) in player_query.iter_mut() {    
+    for (action_state_vector, mut animation_indeces, mut texture_atlas_sprite_sprite_sheet, player_input, movement_state, mut attack_state) in player_query.iter_mut() {    
         let ((second_first_difference, third_second_difference), (recent_key_first, recent_key_second, recent_key_third)) = if action_state_vector.action_vector.len() >= 3 {
         //if !action_state_vector.action_vector.is_empty() {
             // assign last several inputs into a variable to check
@@ -390,7 +443,7 @@ pub fn player_ground_attack(
             //println!("first: {}, second: {}, third: {}", recent_element_first, recent_element_second, recent_element_third);
             //println!("2 - 1: {}, 3 - 2: {}", second_first_difference, third_second_difference);
 
-            println!("first key: {:?}, second key: {:?}, third key: {:?}", recent_action_vector[0].0, recent_action_vector[1].0, recent_action_vector[2].0);
+            //println!("first key: {:?}, second key: {:?}, third key: {:?}", recent_action_vector[0].0, recent_action_vector[1].0, recent_action_vector[2].0);
 
             ((second_first_difference, third_second_difference), (recent_action_vector[0].0, recent_action_vector[1].0, recent_action_vector[2].0))
 
@@ -410,10 +463,10 @@ pub fn player_ground_attack(
 
         // In the future replace all of this let if statements into a single match block
 
-        if grounded_state.0 == GroundedState::Neutral {
-            let mut ending_index = if keyboard_input.just_pressed(KeyCode::J) {
+        if !attack_state.is_attacking {
+            let mut ending_index = if player_input.light {
                 
-                next_grounded_state.set(GroundedState::Attack);
+                attack_state.is_attacking = true;
                 //if player_state.0 == PlayerState::Grounded {
                 //    animation_indeces.first = 11;
                 //    animation_indeces.last = 16;
@@ -463,8 +516,9 @@ pub fn player_ground_attack(
 
 
             // can repeat same structure, jsut with different first and last indeces and different keycodes
-            ending_index = if keyboard_input.just_pressed(KeyCode::K) {
-                next_grounded_state.set(GroundedState::Attack);
+            ending_index = if player_input.medium {
+                //next_attack_state.set(AttackState::Attack);
+                attack_state.is_attacking = true;
                 println!("Doing K attack -- Medium");
                 //animation_indeces.first = 11;
                 animation_indeces.first = 18;
@@ -479,8 +533,9 @@ pub fn player_ground_attack(
             };
 
 
-            ending_index = if keyboard_input.just_pressed(KeyCode::L) {
-                next_grounded_state.set(GroundedState::Attack);
+            ending_index = if player_input.heavy {
+                //next_attack_state.set(AttackState::Attack);
+                attack_state.is_attacking = true;
                 println!("Doing L attack -- Heavy");
                 animation_indeces.last
             }
@@ -498,14 +553,15 @@ pub fn player_ground_attack(
 
             // fireball
             //   if you pressed j and your recent action vector contains S, D, j, do fireball
-            ending_index = if keyboard_input.just_pressed(KeyCode::J) 
+            ending_index = if player_input.light 
                 && second_first_difference <= SPECIAL_MOVE_BUFFER_TIME 
                 && third_second_difference <= SPECIAL_MOVE_BUFFER_TIME
-                && recent_key_first == KeyCode::S
+                && recent_key_first == KeyCode::S                                               // Fix this part later -- I'm not sure if I'm using a special button or movement inputs...
                 && recent_key_second == KeyCode::D
                 && recent_key_third == KeyCode::J
                 {
-                    next_grounded_state.set(GroundedState::Attack);
+                    //next_attack_state.set(AttackState::Attack);
+                    attack_state.is_attacking = true;
                     println!("Doing Light Forward Fireball");
                     animation_indeces.first = 33;
                     //animation_indeces.last = 16;
@@ -517,14 +573,15 @@ pub fn player_ground_attack(
                     animation_indeces.last
                 };
 
-            ending_index = if keyboard_input.just_pressed(KeyCode::K) 
+            ending_index = if player_input.medium
                 && second_first_difference <= SPECIAL_MOVE_BUFFER_TIME
                 && third_second_difference <= SPECIAL_MOVE_BUFFER_TIME 
                 && recent_key_first == KeyCode::S
                 && recent_key_second == KeyCode::D
                 && recent_key_third == KeyCode::K
                 {
-                    next_grounded_state.set(GroundedState::Attack);
+                    //next_attack_state.set(AttackState::Attack);
+                    attack_state.is_attacking = false;
                     println!("Doing Medium Forward Fireball");
                     animation_indeces.first = 0;
                     //animation_indeces.last = 16;
@@ -537,14 +594,15 @@ pub fn player_ground_attack(
                 };
 
 
-            ending_index = if keyboard_input.just_pressed(KeyCode::L) 
+            ending_index = if player_input.heavy
                 && second_first_difference <= SPECIAL_MOVE_BUFFER_TIME 
                 && third_second_difference <= SPECIAL_MOVE_BUFFER_TIME 
                 && recent_key_first == KeyCode::S
                 && recent_key_second == KeyCode::D
                 && recent_key_third == KeyCode::L
                 {
-                    next_grounded_state.set(GroundedState::Attack);
+                    //next_attack_state.set(AttackState::Attack);
+                    attack_state.is_attacking = true;
                     println!("Doing Heavy Forward Fireball");
                     animation_indeces.first = 0;
                     //animation_indeces.last = 16;
@@ -582,15 +640,13 @@ pub fn player_ground_attack(
 }
 
 pub fn player_reset_to_neutral(
-    mut player_query: Query<(&mut AnimationIndices, &mut TextureAtlasSprite), With<Player>>,
-    grounded_state: Res<State<GroundedState>>,
-    mut next_grounded_state: ResMut<NextState<GroundedState>>,
-    air_state: Res<State<AirState>>,
-    mut next_air_state: ResMut<NextState<AirState>>,
+    mut player_query: Query<(&mut AnimationIndices, &mut TextureAtlasSprite, &mut AttackState), With<Player>>,
+    //attack_state: Res<State<AttackState>>,
+    //mut next_attack_state: ResMut<NextState<AttackState>>,
 ) {
     //if let Ok((mut animation_indeces, mut texture_atlas_sprite_sprite_sheet)) = player_query.get_single_mut() {
-    for (mut animation_indeces, mut texture_atlas_sprite_sprite_sheet) in player_query.iter_mut() {
-        if texture_atlas_sprite_sprite_sheet.index == animation_indeces.last && (grounded_state.0 == GroundedState::Attack || air_state.0 == AirState::Attack || grounded_state.0 == GroundedState::Crouching) {
+    for (mut animation_indeces, mut texture_atlas_sprite_sprite_sheet, mut attack_state) in player_query.iter_mut() {
+        if texture_atlas_sprite_sprite_sheet.index == animation_indeces.last && (attack_state.is_attacking) {
             // reset animation indeces to the default for the particular state
             animation_indeces.first = 0;
             animation_indeces.last = 11;
@@ -598,8 +654,8 @@ pub fn player_reset_to_neutral(
             //next_player_state.set(PlayerState::Grounded);
 
             // reset to neutral state
-            next_grounded_state.set(GroundedState::Neutral);
-            next_air_state.set(AirState::Neutral);
+            //next_attack_state.set(AttackState::Neutral);
+            attack_state.is_attacking = false;
         }
 
     }
@@ -641,21 +697,21 @@ pub fn confine_player_movement(
 
 // Check if the player is grounded
 pub fn ground_check(
-    mut player_query: Query<(&Transform, &EntitySizeCollision, &mut JumpVelocity), With<Player>>,
+    mut player_query: Query<(&Transform, &EntitySizeCollision, &mut JumpVelocity, &mut MovementState, &PlayerNumber), With<Player>>,
     floor_query: Query<(&Transform, &EntitySizeCollision), With<Floor>>,
-    player_state: Res<State<PlayerState>>,
-    mut next_player_state: ResMut<NextState<PlayerState>>,
+    //player_state: Res<State<PlayerState>>,
+    //mut next_player_state: ResMut<NextState<PlayerState>>,
 ) {
     //if let Ok((player_transform, player_collision, mut jump_velocity)) = player_query.get_single_mut() {
-    for (player_transform, player_collision, mut jump_velocity) in player_query.iter_mut() {
+    for (player_transform, player_collision, mut jump_velocity, mut movement_state, player_number) in player_query.iter_mut() {
         for (floor_transform, floor_collision) in floor_query.iter() {
             // check collision get boolean
             //let distance = player_transform.translation.distance(floor_transform.translation);
-            let _horizontal_distance = player_transform.translation.x - floor_transform.translation.x;
+            //let _horizontal_distance = player_transform.translation.x - floor_transform.translation.x;
             let vertical_distance = player_transform.translation.y - floor_transform.translation.y;
-            let _horizontal_player_length = player_collision.horizontal_entity_size / 2.0;
+            //let _horizontal_player_length = player_collision.horizontal_entity_size / 2.0;
             let vertical_player_length = player_collision.vertical_entity_size / 2.0;
-            let _horizontal_floor_length = floor_collision.horizontal_entity_size / 2.0;
+            //let _horizontal_floor_length = floor_collision.horizontal_entity_size / 2.0;
             let vertical_floor_length = floor_collision.vertical_entity_size / 2.0;
             
         
@@ -663,24 +719,43 @@ pub fn ground_check(
             // if (horizontal_distance < horizontal_player_length + horizontal_floor_length)
             if vertical_distance < vertical_player_length + vertical_floor_length {
 
+                if !movement_state.is_grounded {
+                    movement_state.is_grounded = true;
+                    // we also want to force horizontal velocity to be 0 here
+                    jump_velocity.horizontal_velocity = 0.0;
+                }
+
+                /* 
                 // if boolean is true {}            
                 if player_state.0 == PlayerState::Air {
                     // switch to ground state
                     next_player_state.set(PlayerState::Grounded);
-                    println!("I'm grounded");
+                    //println!("I'm grounded");
+
 
                     // we also want to force horizontal velocity to be 0 here
                     jump_velocity.horizontal_velocity = 0.0;
                 }
+                */
             } else {
                 // if boolean is false ()
+
+                if movement_state.is_grounded {
+                    movement_state.is_grounded = false;
+                }
+
+                /*
                 if player_state.0 == PlayerState::Grounded {
                     // switch to air state
                     next_player_state.set(PlayerState::Air);
                     //println!("I'm in the air");
                 }
+                 */
+
             }
+
         }
+        println!("testing state for player {} -- is_this_working should be false if I'm in air, true if I'm grounded: {}", player_number.player_number, movement_state.is_grounded);
     }
 }
 
@@ -769,6 +844,7 @@ pub fn testing_new_input_system(
         player_inputs.medium = keyboard_input.pressed(player_keybinds.medium_bind);
         player_inputs.heavy = keyboard_input.pressed(player_keybinds.heavy_bind);
         player_inputs.special = keyboard_input.pressed(player_keybinds.special_bind);
+        /* 
         println!("player_inputs: {}", player_inputs.up);
         println!("player_inputs: {}", player_inputs.down);
         println!("player_inputs: {}", player_inputs.left);
@@ -777,7 +853,7 @@ pub fn testing_new_input_system(
         println!("player_inputs: {}", player_inputs.medium);
         println!("player_inputs: {}", player_inputs.heavy);
         println!("player_inputs: {}", player_inputs.special);
-        
+        */
     }
 }
 

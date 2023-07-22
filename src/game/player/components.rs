@@ -54,3 +54,18 @@ pub struct InputBinding {
     pub heavy_bind: KeyCode,
     pub special_bind: KeyCode,
 }
+
+#[derive(Component)]
+pub struct MovementState {
+    pub is_grounded: bool,
+}
+
+#[derive(Component)]
+pub struct AttackState {
+    pub is_attacking: bool,
+}
+
+#[derive(Component)]
+pub struct PlayerNumber {
+    pub player_number: i32,
+}
