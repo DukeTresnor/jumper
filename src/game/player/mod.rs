@@ -27,8 +27,9 @@ impl Plugin for PlayerPlugin {
         app
             //.add_state::<PlayerState>()
             //.add_state::<AttackState>()
-            .add_system(spawn_player.in_schedule(OnEnter(AppState::Game)))
+            .add_systems(OnEnter(AppState::Game), spawn_player)
             .add_systems(
+                Update,
                 (
                     populate_player_action_vector,
                     confine_player_movement,
@@ -39,8 +40,8 @@ impl Plugin for PlayerPlugin {
                     player_ground_attack,
                     player_movement,
                 )
-                .in_set(OnUpdate(AppState::Game))
-                .in_set(OnUpdate(SimulationState::Running))
+                .run_if(in_state(AppState::Game))
+                .run_if(in_state(SimulationState::Running))
             )
             /*
             .add_systems(
@@ -56,7 +57,7 @@ impl Plugin for PlayerPlugin {
             )
              */
             //.add_system(ground_check.run_if(in_state(AppState::Game)))
-            .add_system(despawn_player.in_schedule(OnExit(AppState::Game)))
+            .add_systems(OnExit(AppState::Game), despawn_player)
             ;
     }
 }

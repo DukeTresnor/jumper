@@ -17,7 +17,7 @@ use enemy::EnemyPlugin;
 
 // use crate::etc. for when trying to access files at a higher level
 use crate::AppState;
-use crate::events::GameOver;
+//use crate::events::GameOver;
 
 // access everything in game/systems.rs
 use systems::*;
@@ -36,31 +36,32 @@ impl Plugin for GamePlugin {
         app
             .init_resource::<InputBufferTimer>()
             .add_state::<SimulationState>()
-            .add_event::<GameOver>()
+            //.add_event::<GameOver>()
             // pause the simulation once you enter the game state of AppState
-            // adds the pause_simulation system on the "OnEnter an AppState Game" schedule
-            .add_system(pause_simulation.in_schedule(OnEnter(AppState::Game)))
-            .add_system(spawn_floor.in_schedule(OnEnter(AppState::Game)))
+            // adds the pause_simulation system on the "OnEnter an AppState Game" schedule                  app.add_systems(OnEnter(AppState::Menu), enter_menu)
+            .add_systems(OnEnter(AppState::Game), pause_simulation)
+            .add_systems(OnEnter(AppState::Game), spawn_floor)
             // Plugins to add when inside AppState::Game
             // Player plugin
-            .add_plugin(PlayerPlugin)
-            .add_plugin(EnemyPlugin)
+            .add_plugins(PlayerPlugin)
+            .add_plugins(EnemyPlugin)
             .add_systems(
+                Update,
                 (
                     animate_sprite,
                     apply_gravity_and_velocity,
                 )
             
-                .in_set(OnUpdate(AppState::Game))
-                .in_set(OnUpdate(SimulationState::Running)),
+                .run_if(in_state(AppState::Game))
+                .run_if(in_state(SimulationState::Running)),
             )
             // add the toggle system if you're in the AppState::Game state
             //   use run_if() and send in_state(AppState::Game) into it
-            .add_system(toggle_simulation_state.run_if(in_state(AppState::Game)))
-            .add_system(despawn_floor.in_schedule(OnExit(AppState::Game)))
+            .add_systems(Update, toggle_simulation_state.run_if(in_state(AppState::Game)))
+            .add_systems(OnExit(AppState::Game), despawn_floor)
             // Add resume_simulation system to the OnExit schedule
             // When you exit the game state, set simulation state to running (ie the default state)
-            .add_system(resume_simulation.in_schedule(OnExit(AppState::Game)))
+            .add_systems(OnExit(AppState::Game), resume_simulation)
             ;
     }
 }

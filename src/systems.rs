@@ -17,7 +17,6 @@ use bevy::app::AppExit;
 
 use crate::AppState;
 use crate::game::SimulationState;
-use crate::events::*;
 
 
 
@@ -29,7 +28,7 @@ pub fn spawn_camera(
     let window = window_query.get_single().unwrap();
     commands.spawn(
         Camera2dBundle {
-            transform: Transform::from_xyz(window.width() / 2.0, window.height() / 2.0, 0.0),
+            transform: Transform::from_xyz(window.width() / 2.0, window.height() / 2.0, 500.0),
             ..default()
         },
     );
@@ -44,7 +43,7 @@ pub fn transition_to_game_state(
 
 ) {
     if keyboard_input.just_pressed(KeyCode::G) {
-        if app_state.0 != AppState::Game {
+        if app_state.get() != &AppState::Game {
             next_app_state.set(AppState::Game);
             println!("I transitioned to the game state");
         }
@@ -63,7 +62,7 @@ pub fn transition_to_main_menu_state(
     mut next_simulation_state: ResMut<NextState<SimulationState>>,
 ) {
     if keyboard_input.just_pressed(KeyCode::M) {
-        if app_state.0 != AppState::MainMenu {
+        if app_state.get() != &AppState::MainMenu {
             next_app_state.set(AppState::MainMenu);
             next_simulation_state.set(SimulationState::Paused);
             println!("I transitioned to the main menu state");
@@ -86,18 +85,3 @@ pub fn exit_game(
     }
 }
 
-pub fn handle_game_over_event(
-    // mutable resource to access the next app state
-    mut next_app_state: ResMut<NextState<AppState>>,
-    // mutable EventReader that looks at GameOver events
-    mut game_over_event_reader: EventReader<GameOver>,
-) {
-    // constantly loop over every event contained in the game over event reader
-    for event in game_over_event_reader.iter() {
-        println!("Your final score is: {}", event.score.to_string());
-        // set the next state to be the GameOver state
-        //    idea is once the game over event is found, exit the current AppState and
-        //      go to the GameOver state
-        next_app_state.set(AppState::GameOver);
-    }
-}
