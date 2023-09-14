@@ -79,9 +79,16 @@ pub fn apply_gravity_and_velocity(
             entity_velocity.vertical_velocity = 0.0;
         }
 
+        if entity_velocity.horizontal_velocity > 0.0 {
+            entity_velocity.horizontal_velocity -= entity_velocity.horizontal_velocity * 0.10;
+        }
 
-
+        if entity_velocity.horizontal_velocity < 0.0 {
+            entity_velocity.horizontal_velocity += entity_velocity.horizontal_velocity * -0.10;
+        }
         //println!("Printing vertical velocity: {}", entity_velocity.vertical_velocity);
+
+
     }
 }
 

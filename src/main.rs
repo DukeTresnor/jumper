@@ -35,7 +35,10 @@ fn main() {
         .run();
 }
 
-// Declaration for MainMenu, Game, and GameOver states
+
+
+
+// Declaration for MainMenu and Game states
 #[derive(States, Debug, Clone, Copy, Eq, PartialEq, Hash, Default)]
 pub enum AppState {
     #[default]

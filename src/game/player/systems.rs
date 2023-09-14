@@ -3,6 +3,7 @@
 
 use bevy::a11y::accesskit::Action;
 use bevy::animation;
+use bevy::ecs::storage;
 use bevy::input::keyboard;
 use bevy::input::keyboard::KeyboardInput;
 use bevy::prelude::*;
@@ -14,8 +15,9 @@ use crate::game::resources::*;
 use crate::game::player::components::*;
 //use crate::game::player::PlayerState;
 //use crate::game::player::AttackState;
-use crate::game::player::{PLAYER_SPEED_VERTICAL, PLAYER_SPEED_HORIZONTAL, PLAYER_SIZE};
+use crate::game::player::{PLAYER_SPEED_VERTICAL, PLAYER_SPEED_HORIZONTAL, PLAYER_SIZE, MARISA_PLAYER_SIZE};
 use crate::game::GRAVITY;
+use crate::game::SimulationState;
 
 use bevy::input::ButtonState;
 
@@ -36,27 +38,30 @@ pub fn spawn_player(
         TextureAtlas::from_grid(
             //asset_server.load("sprites/lenneth/idle_anim/idle_spritesheet.png"),
             //asset_server.load("sprites/lenneth/test_sprite_sheet/spritesheet.png"),
-            asset_server.load("sprites/lenneth/test_sprite_sheet/test_lenneth_spritesheet_spread_mod.png"),
+            //asset_server.load("sprites/lenneth/test_sprite_sheet/test_lenneth_spritesheet_spread_mod.png"),
+            asset_server.load("sprites/touhou/marisa_kirisame/marisa_spritesheet.png"),
             // Inputs here are the size of each individual sprite inside the spritesheet
             //Vec2::new(64.0, 64.0), 12, 1, None, None
-            Vec2::new(96.0, 64.0), 17, 4, None, None
+            //Vec2::new(96.0, 64.0), 17, 4, None, None,
+            // Marisa
+            Vec2::new(288.0, 144.0), 22, 41, None, None,
         );
     let texture_atlas_handle = texture_atlases.add(texture_atlas);
-    let animation_indices = AnimationIndices { first: 0, last: 11 };
+    let animation_indices = AnimationIndices { first: 0, last: 9 };
 
 
     let texture_atlas_second = 
         TextureAtlas::from_grid(
             //asset_server.load("sprites/lenneth/idle_anim/idle_spritesheet.png"),
             //asset_server.load("sprites/lenneth/test_sprite_sheet/spritesheet.png"),
-            asset_server.load("sprites/lenneth/test_sprite_sheet/test_lenneth_spritesheet_spread_mod.png"),
+            asset_server.load("sprites/touhou/marisa_kirisame/marisa_spritesheet.png"),
             // Inputs here are the size of each individual sprite inside the spritesheet
             //Vec2::new(64.0, 64.0), 12, 1, None, None
-            Vec2::new(96.0, 64.0), 17, 4, None, None
+            Vec2::new(288.0, 144.0), 22, 41, None, None
         );
 
     let texture_atlas_handle_second = texture_atlases.add(texture_atlas_second);
-    let animation_indices_second = AnimationIndices { first: 0, last: 11 };
+    let animation_indices_second = AnimationIndices { first: 0, last: 9 };
 
     // spawn a Player with the Player and Gravity components
     commands.spawn(
@@ -74,13 +79,97 @@ pub fn spawn_player(
                 sprite: TextureAtlasSprite::new(animation_indices.first),
                 ..default()
             },
+            SpriteSheetIndeces {
+                idle_first: 0,
+                idle_last: 9,
+                crouching_first: 22,
+                crouching_last: 32,
+                walk_forward_first: 44,
+                walk_forward_last: 51,
+                walk_back_first: 66,
+                walk_back_last: 71,
+                dash_forward_first: 88,
+                dash_forward_last: 96,
+                dash_back_first: 110,
+                dash_back_last: 116,
+                jump_first: 132,
+                jump_last: 145,
+                jump_forward_first: 154,
+                jump_forward_last: 165,
+                jump_back_first: 176,
+                jump_back_last: 183,
+                throw_first: 198,
+                throw_last: 208,
+                throw_jumping_first: 220,
+                throw_jumping_last: 230,
+                universal_overhead_first: 242,
+                universal_overhead_last: 251,
+                light_first: 264,
+                light_last: 270,
+                light_crouching_first: 286,
+                light_crouching_last: 293,
+                light_jumping_first: 308,
+                light_jumping_last: 317,
+                light_far_first: 330,
+                light_far_last: 338,
+                medium_first: 352,
+                medium_last: 365,
+                medium_crouching_first: 374,
+                medium_crouching_last: 382,
+                medium_jumping_first: 396,
+                medium_jumping_last: 402,
+                heavy_first: 418,
+                heavy_last: 427,
+                heavy_crouching_first: 440,
+                heavy_crouching_last: 450,
+                heavy_jumping_first: 462,
+                heavy_jumping_last: 470,
+                unique_first: 484,
+                unique_last: 493,
+                unique_crouching_first: 506,
+                unique_crouching_last: 525,
+                unique_jumping_first: 528,
+                unique_jumping_last: 537,
+                unique_forward_first: 550,
+                unique_forward_last: 559,
+                special_first: 572,
+                special_last: 588,
+                special_crouching_first: 594,
+                special_crouching_last: 602,
+                special_jumping_first: 616,
+                special_jumping_last: 625,
+                special_forward_first: 638,
+                special_forward_last: 648,
+                special_back_first: 660,
+                special_back_last: 681,
+                blocking_first: 682,
+                blocking_last: 683,
+                blocking_crouching_first: 704,
+                blocking_crouching_last: 705,
+                blocking_jumping_first: 726,
+                blocking_jumping_last: 727,
+                hit_standing_first: 748,
+                hit_standing_last: 750,
+                hit_crouching_first: 770,
+                hit_crouching_last: 772,
+                hit_air_first: 792,
+                hit_air_last: 799,
+                hit_throw_first: 814,
+                hit_throw_last: 820,
+                knockdown_light_first: 836,
+                knockdown_light_last: 842,
+                knockdown_hard_first: 858,
+                knockdown_hard_last: 864,
+                knockdown_getup_first: 880,
+                knockdown_getup_last: 892,
+            },
             Player {},
             Gravity {
                 gravity_constant: GRAVITY,
             },
             EntitySizeCollision {
                 horizontal_entity_size: PLAYER_SIZE,
-                vertical_entity_size: PLAYER_SIZE,
+                vertical_entity_size: MARISA_PLAYER_SIZE,
             },
             JumpVelocity {
                 horizontal_velocity: 0.0,
@@ -102,6 +191,7 @@ pub fn spawn_player(
                 light: false,
                 medium: false,
                 heavy: false,
+                unique: false,
                 special: false,
             },
             InputBinding {
@@ -112,10 +202,12 @@ pub fn spawn_player(
                 light_bind: KeyCode::J,
                 medium_bind: KeyCode::K,
                 heavy_bind: KeyCode::L,
+                unique_bind: KeyCode::I,
                 special_bind: KeyCode::O,
             },
             MovementState {
                 is_grounded: false,
+                is_walking: false,
             },
             AttackState {
                 is_attacking: false,
@@ -123,6 +215,7 @@ pub fn spawn_player(
             PlayerNumber {
                 player_number: 1,
             },
+
             
         )
 
@@ -135,6 +228,90 @@ pub fn spawn_player(
                 texture_atlas: texture_atlas_handle_second,
                 sprite: TextureAtlasSprite::new(animation_indices_second.first),
                 ..default()
+            },
+            SpriteSheetIndeces {
+                idle_first: 0,
+                idle_last: 9,
+                crouching_first: 22,
+                crouching_last: 32,
+                walk_forward_first: 44,
+                walk_forward_last: 51,
+                walk_back_first: 66,
+                walk_back_last: 71,
+                dash_forward_first: 88,
+                dash_forward_last: 96,
+                dash_back_first: 110,
+                dash_back_last: 116,
+                jump_first: 132,
+                jump_last: 145,
+                jump_forward_first: 154,
+                jump_forward_last: 165,
+                jump_back_first: 176,
+                jump_back_last: 183,
+                throw_first: 198,
+                throw_last: 208,
+                throw_jumping_first: 220,
+                throw_jumping_last: 230,
+                universal_overhead_first: 242,
+                universal_overhead_last: 251,
+                light_first: 264,
+                light_last: 270,
+                light_crouching_first: 286,
+                light_crouching_last: 293,
+                light_jumping_first: 308,
+                light_jumping_last: 317,
+                light_far_first: 330,
+                light_far_last: 338,
+                medium_first: 352,
+                medium_last: 365,
+                medium_crouching_first: 374,
+                medium_crouching_last: 382,
+                medium_jumping_first: 396,
+                medium_jumping_last: 402,
+                heavy_first: 418,
+                heavy_last: 427,
+                heavy_crouching_first: 440,
+                heavy_crouching_last: 450,
+                heavy_jumping_first: 462,
+                heavy_jumping_last: 470,
+                unique_first: 484,
+                unique_last: 493,
+                unique_crouching_first: 506,
+                unique_crouching_last: 525,
+                unique_jumping_first: 528,
+                unique_jumping_last: 537,
+                unique_forward_first: 550,
+                unique_forward_last: 559,
+                special_first: 572,
+                special_last: 588,
+                special_crouching_first: 594,
+                special_crouching_last: 602,
+                special_jumping_first: 616,
+                special_jumping_last: 625,
+                special_forward_first: 638,
+                special_forward_last: 648,
+                special_back_first: 660,
+                special_back_last: 681,
+                blocking_first: 682,
+                blocking_last: 683,
+                blocking_crouching_first: 704,
+                blocking_crouching_last: 705,
+                blocking_jumping_first: 726,
+                blocking_jumping_last: 727,
+                hit_standing_first: 748,
+                hit_standing_last: 750,
+                hit_crouching_first: 770,
+                hit_crouching_last: 772,
+                hit_air_first: 792,
+                hit_air_last: 799,
+                hit_throw_first: 814,
+                hit_throw_last: 820,
+                knockdown_light_first: 836,
+                knockdown_light_last: 842,
+                knockdown_hard_first: 858,
+                knockdown_hard_last: 864,
+                knockdown_getup_first: 880,
+                knockdown_getup_last: 892,
             },
             Player {},
             Gravity {
@@ -164,6 +341,7 @@ pub fn spawn_player(
                 light: false,
                 medium: false,
                 heavy: false,
+                unique: false,
                 special: false,
             },
             InputBinding {
@@ -174,10 +352,12 @@ pub fn spawn_player(
                 light_bind: KeyCode::Key7,
                 medium_bind: KeyCode::Key8,
                 heavy_bind: KeyCode::Key9,
+                unique_bind: KeyCode::U,
                 special_bind: KeyCode::Key0,
             },
             MovementState {
                 is_grounded: false,
+                is_walking: false,
             },
             AttackState {
                 is_attacking: false,
@@ -205,13 +385,15 @@ pub fn despawn_player(
 
 
 
+// mut player_query: Query<(&ActionStateVector, &mut AnimationIndices,
+// &mut TextureAtlasSprite, &PlayerInput, &MovementState, &mut AttackState, &SpriteSheetIndeces), With<Player>>,
 
 
 // player_query needs the transform along with player b/c we are trying to move the player
 // we again also need the time resource
 pub fn player_movement(
     keyboard_input: Res<Input<KeyCode>>,
-    mut player_query: Query<(&mut Transform, &mut AnimationIndices, &mut TextureAtlasSprite, &mut PlayerInput, &mut JumpVelocity, &MovementState, &AttackState), With<Player>>,
+    mut player_query: Query<(&mut Transform, &mut AnimationIndices, &mut TextureAtlasSprite, &mut PlayerInput, &mut JumpVelocity, &MovementState, &AttackState, &SpriteSheetIndeces), With<Player>>,
     time: Res<Time>,
     //player_state: Res<State<PlayerState>>,
     //mut next_player_state: ResMut<NextState<PlayerState>>,
@@ -221,7 +403,7 @@ pub fn player_movement(
     // Get the single mutable thing that exists in player_query, and store it into the transform variable
     // If transform gets a Transform component, continue the if block
     //if let Ok((mut transform, mut animation_indeces, mut texture_atlas_sprite_sprite_sheet)) = player_query.get_single_mut() {
-    for (mut transform, mut animation_indeces, mut texture_atlas_sprite_sprite_sheet, mut player_input, mut player_velocity, movement_state, attack_state) in player_query.iter_mut() {
+    for (mut transform, mut animation_indeces, mut texture_atlas_sprite_sprite_sheet, mut player_input, mut player_velocity, movement_state, attack_state, sprite_sheet_indeces) in player_query.iter_mut() {
         if !attack_state.is_attacking && movement_state.is_grounded {
 
             // holding: player_state.0 == PlayerState::Grounded
@@ -231,7 +413,7 @@ pub fn player_movement(
 
             /* 
             if player_input.up && player_input.left {
-                // Jump left
+                // Jump left -- set vertical and horizontal velocity
             
             }
 
@@ -240,14 +422,58 @@ pub fn player_movement(
             }
             */
 
+
+
+/*
+
+            // Back Throw Logic //
+            ending_index = if player_input.light && player_input.unique &&
+                ( (player_input.left && !texture_atlas_sprite_sprite_sheet.flip_x) || (player_input.right && texture_atlas_sprite_sprite_sheet.flip_x) ) {
+            //
+                println!("Doing back throw");
+                attack_state.is_attacking = true;
+                animation_indeces.first = sprite_sheet_indeces.throw_first;
+                animation_indeces.last = sprite_sheet_indeces.throw_last;
+                texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+                animation_indeces.last
+            } else {
+                animation_indeces.last
+            };
+*/
+
+
             // Handle the different keyboard inputs that dictate movement
             if player_input.left {
                 direction += Vec3::new(-1.0, 0.0, 0.0);
-                // set indeces to walking animation
+
+                if !texture_atlas_sprite_sprite_sheet.flip_x {
+                    // set indeces to walking animation
+                    animation_indeces.first = sprite_sheet_indeces.walk_back_first;
+                    animation_indeces.last = sprite_sheet_indeces.walk_back_last;
+                    texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+                } else {
+                    // when texture_atlas_sprite_sprite_sheet.flip_x is true
+                    animation_indeces.first = sprite_sheet_indeces.walk_forward_first;
+                    animation_indeces.last = sprite_sheet_indeces.walk_forward_last;
+                    texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+                }
+                
             }
             if player_input.right {
                 direction += Vec3::new(1.0, 0.0, 0.0);
-                // set indeces to walking animation
+
+                if !texture_atlas_sprite_sprite_sheet.flip_x {
+                    // set indeces to walking animation
+                    animation_indeces.first = sprite_sheet_indeces.walk_forward_first;
+                    animation_indeces.last = sprite_sheet_indeces.walk_forward_last;
+                    texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+                } else {
+                    //  when texture_atlas_sprite_sprite_sheet.flip_x is true
+                    animation_indeces.first = sprite_sheet_indeces.walk_back_first;
+                    animation_indeces.last = sprite_sheet_indeces.walk_back_last;
+                    texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+                }
+
             }  
             //
             if direction.length() > 0.0 {
@@ -265,8 +491,8 @@ pub fn player_movement(
 
 
             let mut ending_index = if player_input.down {
-                animation_indeces.first = 50;
-                animation_indeces.last = 55;
+                animation_indeces.first = sprite_sheet_indeces.crouching_first;
+                animation_indeces.last = sprite_sheet_indeces.crouching_last;
                 texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
                 animation_indeces.last
             }
@@ -400,8 +626,8 @@ pub fn player_ground_attack(
     // we don't actually need the texture atlas itself I think, because all we should need to do is change the AnimationIndeces
     // we do need the texture atlas, because we need to access the current index of the texture atlas
 
-    mut commands: Commands, // <-- used for spawning projectiles I think?
-    mut player_query: Query<(&ActionStateVector, &mut AnimationIndices, &mut TextureAtlasSprite, &PlayerInput, &MovementState, &mut AttackState), With<Player>>,
+    mut commands: Commands, // <-- used for spawning projectiles I think? Also used for spawning hitboxes
+    mut player_query: Query<(&ActionStateVector, &mut AnimationIndices, &mut TextureAtlasSprite, &PlayerInput, &MovementState, &mut AttackState, &SpriteSheetIndeces), With<Player>>,
     keyboard_input: Res<Input<KeyCode>>,
     mut keyboard_event_reader: EventReader<KeyboardInput>,
     //attack_state: Res<State<AttackState>>,
@@ -426,7 +652,7 @@ pub fn player_ground_attack(
     //let mut ending_index = 0;
 
     //if let Ok((action_state_vector, mut animation_indeces, mut texture_atlas_sprite_sprite_sheet)) = player_query.get_single_mut() {
-    for (action_state_vector, mut animation_indeces, mut texture_atlas_sprite_sprite_sheet, player_input, movement_state, mut attack_state) in player_query.iter_mut() {    
+    for (action_state_vector, mut animation_indeces, mut texture_atlas_sprite_sprite_sheet, player_input, movement_state, mut attack_state, sprite_sheet_indeces) in player_query.iter_mut() {    
         let ((second_first_difference, third_second_difference), (recent_key_first, recent_key_second, recent_key_third)) = if action_state_vector.action_vector.len() >= 3 {
         //if !action_state_vector.action_vector.is_empty() {
             // assign last several inputs into a variable to check
@@ -463,22 +689,57 @@ pub fn player_ground_attack(
 
         // In the future replace all of this let if statements into a single match block
 
-        if !attack_state.is_attacking {
-            let mut ending_index = if player_input.light {
-                
+        
+        if !attack_state.is_attacking && movement_state.is_grounded {
+            
+            // Throw Logic //
+            let mut ending_index = if player_input.light && player_input.unique {
+                //
+                println!("Doing throw");
                 attack_state.is_attacking = true;
-                //if player_state.0 == PlayerState::Grounded {
-                //    animation_indeces.first = 11;
-                //    animation_indeces.last = 16;
-                //    texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
-                //    next_player_state.set(PlayerState::Attack);
-                //}
-                //animation_indeces.first = 11;
-                animation_indeces.first = 18;
-                //animation_indeces.last = 16;
-                animation_indeces.last = 21;
+                animation_indeces.first = sprite_sheet_indeces.throw_first;
+                animation_indeces.last = sprite_sheet_indeces.throw_last;
                 texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
-                //next_player_state.set(PlayerState::Attack);
+                animation_indeces.last
+            } else {
+                animation_indeces.last
+            };
+            
+            // Back Throw Logic //
+            ending_index = if player_input.light && player_input.unique &&
+                ( (player_input.left && !texture_atlas_sprite_sprite_sheet.flip_x) || (player_input.right && texture_atlas_sprite_sprite_sheet.flip_x) ) {
+            //
+                println!("Doing back throw");
+                attack_state.is_attacking = true;
+                animation_indeces.first = sprite_sheet_indeces.throw_first;
+                animation_indeces.last = sprite_sheet_indeces.throw_last;
+                texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+                animation_indeces.last
+            } else {
+                animation_indeces.last
+            };
+
+            // Universal Overhead Logic //
+            ending_index = if player_input.medium && player_input.heavy {
+                //
+                println!("Doing universal overhead");
+                attack_state.is_attacking = true;
+                animation_indeces.first = sprite_sheet_indeces.universal_overhead_first;
+                animation_indeces.last = sprite_sheet_indeces.universal_overhead_last;
+                texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+                animation_indeces.last
+            } else {
+                animation_indeces.last
+            };      
+            
+            // Light Attack Logic //
+            ending_index = if player_input.light {
+                
+                println!("Doing Light Attack");
+                attack_state.is_attacking = true;
+                animation_indeces.first = sprite_sheet_indeces.light_first;
+                animation_indeces.last = sprite_sheet_indeces.light_last;
+                texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
                 animation_indeces.last
             }
             else {
@@ -486,44 +747,58 @@ pub fn player_ground_attack(
             };
             
 
-            /* 
-            // building block for overall input handler... fill in later
-            // keyboard_event.key_code.unwrap()
-            for keyboard_event in keyboard_event_reader.iter() {
-                let mut test_index = match keyboard_event.key_code.unwrap() {
-                    KeyCode::J =>
-                        {
-                            println!("Light Attack");
-                            animation_indeces.last
-                        }
-                    KeyCode::K => 
-                        {
-                            println!("Medium Attack");
-                            animation_indeces.last
-                        }
-                    KeyCode::L => 
-                        {
-                            println!("Heavy Attack");
-                            animation_indeces.last
-                        }
-                    _ => animation_indeces.last,
-                };
+            // Crouching Light Attack Logic // 
+            ending_index = if player_input.light && player_input.down {
+                println!("Doing Crouching Light Attack");
+                attack_state.is_attacking = true;
+                animation_indeces.first = sprite_sheet_indeces.light_crouching_first;
+                animation_indeces.last = sprite_sheet_indeces.light_crouching_last;
+                texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+                animation_indeces.last
+
+            } else {
+                animation_indeces.last
             };
-            
-            */
 
 
+            // Forward Light Attack Logic // 
+            ending_index = if player_input.light &&
+                ( (player_input.right && !texture_atlas_sprite_sprite_sheet.flip_x) || (player_input.left && texture_atlas_sprite_sprite_sheet.flip_x) ){
+                println!("Doing Forward Light Attack");
+                attack_state.is_attacking = true;
+                animation_indeces.first = sprite_sheet_indeces.light_far_first;
+                animation_indeces.last = sprite_sheet_indeces.light_far_last;
+                texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+                animation_indeces.last
 
+            } else {
+                animation_indeces.last
+            };
 
-            // can repeat same structure, jsut with different first and last indeces and different keycodes
+            /*
+            // Back Light Attack Logic // Not using back light attack for now
+            ending_index = if player_input.light &&
+                ( (player_input.left && !texture_atlas_sprite_sprite_sheet.flip_x) || (player_input.right && texture_atlas_sprite_sprite_sheet.flip_x) ){
+                println!("Doing Back Light Attack");
+                attack_state.is_attacking = true;
+                //animation_indeces.first = Sprite Sheet Indeces var first
+                //animation_indeces.last = Sprite Sheet Indeces var last
+                texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+                animation_indeces.last
+
+            } else {
+                animation_indeces.last
+            };
+             */
+
+            // Medium Attack Logic //
+            // can repeat same structure, just with different first and last indeces and different keycodes
             ending_index = if player_input.medium {
                 //next_attack_state.set(AttackState::Attack);
                 attack_state.is_attacking = true;
-                println!("Doing K attack -- Medium");
-                //animation_indeces.first = 11;
-                animation_indeces.first = 18;
-                //animation_indeces.last = 16;
-                animation_indeces.last = 21;
+                println!("Doing Medium Attack");
+                animation_indeces.first = sprite_sheet_indeces.medium_first;
+                animation_indeces.last = sprite_sheet_indeces.medium_last;
                 texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
                 animation_indeces.last
 
@@ -532,14 +807,222 @@ pub fn player_ground_attack(
                 animation_indeces.last
             };
 
+            // Crouching Medium Attack Logic // 
+            ending_index = if player_input.medium && player_input.down {
+                println!("Doing Crouching Medium Attack");
+                attack_state.is_attacking = true;
+                animation_indeces.first = sprite_sheet_indeces.medium_crouching_first;
+                animation_indeces.last = sprite_sheet_indeces.medium_crouching_last;
+                texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+                animation_indeces.last
 
+            } else {
+                animation_indeces.last
+            };
+
+
+            /* 
+            // Forward Medium Attack Logic // 
+            ending_index = if player_input.medium &&
+                ( (player_input.right && !texture_atlas_sprite_sprite_sheet.flip_x) || (player_input.left && texture_atlas_sprite_sprite_sheet.flip_x) ) {
+                println!("Doing Forward Medium Attack");
+                attack_state.is_attacking = true;
+                //animation_indeces.first = Sprite Sheet Indeces var first
+                //animation_indeces.last = Sprite Sheet Indeces var last
+                texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+                animation_indeces.last
+
+            } else {
+                animation_indeces.last
+            };    
+    
+            // Back Medium Attack Logic
+            ending_index = if player_input.medium &&
+                ( (player_input.left && !texture_atlas_sprite_sprite_sheet.flip_x) || (player_input.right && texture_atlas_sprite_sprite_sheet.flip_x) ) {
+                //
+                println!("Doing Back Medium Attack");
+                attack_state.is_attacking = true;
+                //animation_indeces.first = Sprite Sheet Indeces var first
+                //animation_indeces.last = Sprite Sheet Indeces var last
+                texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+                animation_indeces.last
+            } else {
+                animation_indeces.last
+            };
+            */
+
+
+            // Heavy Attack Logic //
             ending_index = if player_input.heavy {
                 //next_attack_state.set(AttackState::Attack);
                 attack_state.is_attacking = true;
-                println!("Doing L attack -- Heavy");
+                println!("Doing Heavy Attack");
+                animation_indeces.first = sprite_sheet_indeces.heavy_first;
+                animation_indeces.last = sprite_sheet_indeces.heavy_last;
+                texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
                 animation_indeces.last
             }
             else {
+                animation_indeces.last
+            };
+
+
+            // Crouching Heavy Attack Logic // 
+            ending_index = if player_input.heavy && player_input.down {
+                println!("Doing Crouching Heavy Attack");
+                attack_state.is_attacking = true;
+                animation_indeces.first = sprite_sheet_indeces.heavy_crouching_first;
+                animation_indeces.last = sprite_sheet_indeces.heavy_crouching_last;
+                texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+                animation_indeces.last
+
+            } else {
+                animation_indeces.last
+            };
+
+
+            /* 
+            // Forward Heavy Attack Logic // 
+            ending_index = if player_input.heavy &&
+                ( (player_input.right && !texture_atlas_sprite_sprite_sheet.flip_x) || (player_input.left && texture_atlas_sprite_sprite_sheet.flip_x) ) {
+                println!("Doing Forward Heavy Attack");
+                attack_state.is_attacking = true;
+                //animation_indeces.first = Sprite Sheet Indeces var first
+                //animation_indeces.last = Sprite Sheet Indeces var last
+                texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+                animation_indeces.last
+
+            } else {
+                animation_indeces.last
+            };    
+    
+            // Back Heavy Attack Logic
+            ending_index = if player_input.heavy &&
+                ( (player_input.left && !texture_atlas_sprite_sprite_sheet.flip_x) || (player_input.right && texture_atlas_sprite_sprite_sheet.flip_x) ) {
+                //
+                println!("Doing Back Heavy Attack");
+                attack_state.is_attacking = true;
+                //animation_indeces.first = Sprite Sheet Indeces var first
+                //animation_indeces.last = Sprite Sheet Indeces var last
+                texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+                animation_indeces.last
+            } else {
+                animation_indeces.last
+            };
+            */
+
+
+            // Unique Attack Logic //
+            ending_index = if player_input.unique {
+                //next_attack_state.set(AttackState::Attack);
+                attack_state.is_attacking = true;
+                println!("Doing Unique Attack");
+                animation_indeces.first = sprite_sheet_indeces.unique_first;
+                animation_indeces.last = sprite_sheet_indeces.unique_last;
+                texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+                animation_indeces.last
+            }
+            else {
+                animation_indeces.last
+            };
+
+
+            // Crouching Unique Attack Logic // 
+            ending_index = if player_input.unique && player_input.down {
+                println!("Doing Crouching Unique Attack");
+                attack_state.is_attacking = true;
+                animation_indeces.first = sprite_sheet_indeces.unique_crouching_first;
+                animation_indeces.last = sprite_sheet_indeces.unique_crouching_last;
+                texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+                animation_indeces.last
+
+            } else {
+                animation_indeces.last
+            };
+
+            // Forward Unique Attack Logic // 
+            ending_index = if player_input.unique &&
+                ( (player_input.right && !texture_atlas_sprite_sprite_sheet.flip_x) || (player_input.left && texture_atlas_sprite_sprite_sheet.flip_x) ) {
+                println!("Doing Forward Unique Attack");
+                attack_state.is_attacking = true;
+                animation_indeces.first = sprite_sheet_indeces.unique_forward_first;
+                animation_indeces.last = sprite_sheet_indeces.unique_forward_last;
+                texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+                animation_indeces.last
+
+            } else {
+                animation_indeces.last
+            };    
+    
+            /* 
+            // Back Unique Attack Logic
+            ending_index = if player_input.unique &&
+                ( (player_input.left && !texture_atlas_sprite_sprite_sheet.flip_x) || (player_input.right && texture_atlas_sprite_sprite_sheet.flip_x) ) {
+                //
+                println!("Doing Back Unique Attack");
+                attack_state.is_attacking = true;
+                //animation_indeces.first = Sprite Sheet Indeces var first
+                //animation_indeces.last = Sprite Sheet Indeces var last
+                texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+                animation_indeces.last
+            } else {
+                animation_indeces.last
+            };
+            */
+
+            // Special Attack Logic //
+            ending_index = if player_input.special {
+                //next_attack_state.set(AttackState::Attack);
+                attack_state.is_attacking = true;
+                println!("Doing Special Attack");
+                animation_indeces.first = sprite_sheet_indeces.special_first;
+                animation_indeces.last = sprite_sheet_indeces.special_last;
+                texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+                animation_indeces.last
+            }
+            else {
+                animation_indeces.last
+            };
+
+
+            // Crouching Special Attack Logic // 
+            ending_index = if player_input.special && player_input.down {
+                println!("Doing Crouching Special Attack");
+                attack_state.is_attacking = true;
+                animation_indeces.first = sprite_sheet_indeces.special_crouching_first;
+                animation_indeces.last = sprite_sheet_indeces.special_crouching_last;
+                texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+                animation_indeces.last
+
+            } else {
+                animation_indeces.last
+            };
+
+            // Forward Special Attack Logic // 
+            ending_index = if player_input.special &&
+                ( (player_input.right && !texture_atlas_sprite_sprite_sheet.flip_x) || (player_input.left && texture_atlas_sprite_sprite_sheet.flip_x) ) {
+                println!("Doing Forward Special Attack");
+                attack_state.is_attacking = true;
+                animation_indeces.first = sprite_sheet_indeces.special_forward_first;
+                animation_indeces.last = sprite_sheet_indeces.special_forward_last;
+                texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+                animation_indeces.last
+
+            } else {
+                animation_indeces.last
+            };    
+    
+            // Back Special Attack Logic
+            ending_index = if player_input.special &&
+                ( (player_input.left && !texture_atlas_sprite_sprite_sheet.flip_x) || (player_input.right && texture_atlas_sprite_sprite_sheet.flip_x) ) {
+                //
+                println!("Doing Back Special Attack");
+                attack_state.is_attacking = true;
+                animation_indeces.first = sprite_sheet_indeces.special_back_first;
+                animation_indeces.last = sprite_sheet_indeces.special_back_last;
+                texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+                animation_indeces.last
+            } else {
                 animation_indeces.last
             };
 
@@ -634,22 +1117,103 @@ pub fn player_ground_attack(
             // --- Ending Bit !! --- //
         }
 
+        // Jumping Attacks
+        if !attack_state.is_attacking && !movement_state.is_grounded {
+            
+            // Light Attack Logic //
+            let mut ending_index = if player_input.light {
+                
+                println!("Doing Jumping Light Attack");
+                attack_state.is_attacking = true;
+                animation_indeces.first = sprite_sheet_indeces.light_jumping_first;
+                animation_indeces.last = sprite_sheet_indeces.light_jumping_last;
+                texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+                //next_player_state.set(PlayerState::Attack);
+                animation_indeces.last
+            } else {
+                animation_indeces.last
+            };
+
+            // Medium Attack Logic //
+            // can repeat same structure, jsut with different first and last indeces and different keycodes
+            ending_index = if player_input.medium {
+                //next_attack_state.set(AttackState::Attack);
+                attack_state.is_attacking = true;
+                println!("Doing Jumping Medium Attack");
+                animation_indeces.first = sprite_sheet_indeces.medium_jumping_first;
+                animation_indeces.last = sprite_sheet_indeces.medium_jumping_last;
+                texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+                animation_indeces.last
+
+            }
+            else {
+                animation_indeces.last
+            };
+
+            // Heavy Attack Logic //
+            ending_index = if player_input.heavy {
+                //next_attack_state.set(AttackState::Attack);
+                attack_state.is_attacking = true;
+                println!("Doing Jumping Heavy Attack");
+                animation_indeces.first = sprite_sheet_indeces.heavy_jumping_first;
+                animation_indeces.last = sprite_sheet_indeces.heavy_jumping_last;
+                texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+                animation_indeces.last
+            }
+            else {
+                animation_indeces.last
+            };
+
+            // Unique Attack Logic //
+            ending_index = if player_input.unique {
+                //next_attack_state.set(AttackState::Attack);
+                attack_state.is_attacking = true;
+                println!("Doing Jumping Unique Attack");
+                animation_indeces.first = sprite_sheet_indeces.unique_jumping_first;
+                animation_indeces.last = sprite_sheet_indeces.unique_jumping_last;
+                texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+                animation_indeces.last
+            }
+            else {
+                animation_indeces.last
+            };
+
+            // Special Attack Logic //
+            ending_index = if player_input.special {
+                //next_attack_state.set(AttackState::Attack);
+                attack_state.is_attacking = true;
+                println!("Doing Jumping Special Attack");
+                animation_indeces.first = sprite_sheet_indeces.special_jumping_first;
+                animation_indeces.last = sprite_sheet_indeces.special_jumping_last;
+                texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+                animation_indeces.last
+            }
+            else {
+                animation_indeces.last
+            };
+
+
+        }
+
+
 
 
     }
 }
 
+
+// Add commands here, in order to despawn hitboxes from the current action
 pub fn player_reset_to_neutral(
-    mut player_query: Query<(&mut AnimationIndices, &mut TextureAtlasSprite, &mut AttackState), With<Player>>,
+    mut player_query: Query<(&mut AnimationIndices, &mut TextureAtlasSprite, &mut AttackState, &mut MovementState, &SpriteSheetIndeces), With<Player>>,
     //attack_state: Res<State<AttackState>>,
     //mut next_attack_state: ResMut<NextState<AttackState>>,
 ) {
     //if let Ok((mut animation_indeces, mut texture_atlas_sprite_sprite_sheet)) = player_query.get_single_mut() {
-    for (mut animation_indeces, mut texture_atlas_sprite_sprite_sheet, mut attack_state) in player_query.iter_mut() {
+    for (mut animation_indeces, mut texture_atlas_sprite_sprite_sheet, mut attack_state, mut movement_state, sprite_sheet_indeces) in player_query.iter_mut() {
         if texture_atlas_sprite_sprite_sheet.index == animation_indeces.last && (attack_state.is_attacking) {
             // reset animation indeces to the default for the particular state
-            animation_indeces.first = 0;
-            animation_indeces.last = 11;
+            animation_indeces.first = sprite_sheet_indeces.idle_first;
+            animation_indeces.last = sprite_sheet_indeces.idle_last;
             texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
             //next_player_state.set(PlayerState::Grounded);
 
@@ -657,6 +1221,11 @@ pub fn player_reset_to_neutral(
             //next_attack_state.set(AttackState::Neutral);
             attack_state.is_attacking = false;
         }
+
+        if texture_atlas_sprite_sprite_sheet.index == animation_indeces.last && movement_state.is_walking {
+            // i want to keep looping if you are holding walk
+        }
+
 
     }
 }
@@ -669,7 +1238,7 @@ pub fn confine_player_movement(
     //if let Ok(mut player_transform) = player_query.get_single_mut() {
     for mut player_transform in player_query.iter_mut() {    
         let window = window_query.get_single().unwrap();
-        let half_player_size = PLAYER_SIZE / 2.0;
+        let half_player_size = MARISA_PLAYER_SIZE / 2.0;
         let x_pos_min = 0.0 + half_player_size;
         let x_pos_max = window.width() - half_player_size;
         let y_pos_min = 0.0 + half_player_size;
@@ -694,6 +1263,134 @@ pub fn confine_player_movement(
 
 
 }
+
+pub fn _debug_player_state(
+    player_query: Query<(&MovementState, &AttackState, &PlayerNumber), With<Player>>,
+) {
+    for (movement_state, attack_state, player_number) in player_query.iter() {
+        println!("printing state for player {} -- is_grounded: {}, is_attacking: {}", player_number.player_number, movement_state.is_grounded, attack_state.is_attacking);
+
+    }
+}
+
+pub fn _debug_player_velocity(
+    player_query: Query<(&JumpVelocity, &PlayerNumber), With<Player>>,
+) {
+    for (jump_velocity, player_number) in player_query.iter() {
+        println!("printing jump velocity for player {}, horizontal_velocity: {}, vertical_velocity: {}", player_number.player_number, jump_velocity.horizontal_velocity, jump_velocity.vertical_velocity);
+    }
+}
+
+pub fn player_flip(
+    //
+    mut player_query: Query<(&Transform, &PlayerNumber, &mut TextureAtlasSprite), With<Player>>,
+    //keyboard_input: Res<Input<KeyCode>>,
+    //window_query: Query<&Window, With<PrimaryWindow>>,
+    //simulation_state: Res<State<SimulationState>>,
+) {
+    //
+    // this assignment to storage transform should only happen once -- but each time the system is called it resets to the window value
+    let mut storage_transform_player_one: Vec3 = Vec3::new(0.0, 0.0, 0.0);
+    let mut storage_transform_player_two: Vec3 = Vec3::new(0.0, 0.0, 0.0);
+
+    for (player_transform, player_number, mut player_atlas_sprite) in player_query.iter_mut() {
+        if player_number.player_number == 1 {
+            storage_transform_player_one = player_transform.translation;
+        }
+        if player_number.player_number == 2 {
+            storage_transform_player_two = player_transform.translation;
+        }
+
+
+        /*
+        
+        
+        println!("test difference: {}", storage_transform_player_two.x - storage_transform_player_one.x);
+
+        let mut distance_from_player_two = 0.0;
+        let mut distance_from_player_one = 0.0;
+
+        if player_number.player_number == 1 {
+            distance_from_player_two = storage_transform_player_two.x - player_transform.translation.x;
+            println!("distance_from_player_two for player {}: {}", player_number.player_number, distance_from_player_two);
+        }
+        if player_number.player_number == 2 {
+            distance_from_player_one = storage_transform_player_one.x - player_transform.translation.x;
+            println!("distance_from_player_one for player {}: {}", player_number.player_number, distance_from_player_one);
+        }
+
+        // something is off here -- distance from player one seems to work fine,
+        //   but distance from player two doesn't
+
+        */
+
+        /*
+        
+        if distance_from_other_player > 0.0 {
+            // TextureAtlasSprite (player_atlas_sprite) --> flip_x to false
+            player_atlas_sprite.flip_x = false;
+        } else {
+            // TextureAtlasSprite (player_atlas_sprite) --> flip_x to true
+            player_atlas_sprite.flip_x = true;
+        }
+        */
+
+        
+        //println!("distance_from_other_player for two: {}", storage_transform_player_two.x);
+
+
+
+    }
+
+    for (player_transform, player_number, mut player_atlas_sprite) in player_query.iter_mut() {
+        //
+        if player_number.player_number == 1 {
+            if player_transform.translation.x < storage_transform_player_two.x {
+                // TextureAtlasSprite --> flip_x to false
+                //println!("player 1 to the left of player 2");
+                player_atlas_sprite.flip_x = false;
+            } else {
+                // TextureAtlasSprite --> flip_x to true
+                //println!("player 1 to the right of player 2");
+                player_atlas_sprite.flip_x = true;
+            }
+        }
+        if player_number.player_number == 2 {
+            if player_transform.translation.x < storage_transform_player_one.x {
+                // TextureAtlasSprite --> flip_x to false
+                //println!("player 2 to the left of player 1");
+                player_atlas_sprite.flip_x = false;
+            } else {
+                // TextureAtlasSprite --> flip_x to true
+                //println!("player 2 to the right of player 1");
+                player_atlas_sprite.flip_x = true;
+            }
+        }
+    }
+
+    /*
+    
+    let window = window_query.get_single().unwrap();
+    let mut storage_transform: Transform = Transform::from_xyz(window.width() / 2.0, window.height() / 2.0, 0.0);
+    for (player_transform, player_number, mut player_atlas_sprite) in player_query.iter_mut() {
+        println!("storage_transform x pos: {:?}", storage_transform.translation.x);
+        if player_transform.translation.x < storage_transform.translation.x {
+            // TextureAtlasSprite --> flip_x to true
+            player_atlas_sprite.flip_x = true;
+            println!("player {} flipped: {}", player_number.player_number, player_atlas_sprite.flip_x);
+        } else {
+            // TextureAtlasSprite --> flip_x to false
+            player_atlas_sprite.flip_x = false;
+            println!("player {} didn't flip: {}", player_number.player_number, player_atlas_sprite.flip_x);
+        }
+
+        storage_transform.translation.x = player_transform.translation.x;
+    }
+    */
+}
+
+
+
 
 // Check if the player is grounded
 pub fn ground_check(
@@ -755,7 +1452,7 @@ pub fn ground_check(
             }
 
         }
-        println!("testing state for player {} -- is_this_working should be false if I'm in air, true if I'm grounded: {}", player_number.player_number, movement_state.is_grounded);
+        
     }
 }
 
@@ -843,6 +1540,7 @@ pub fn testing_new_input_system(
         player_inputs.light = keyboard_input.pressed(player_keybinds.light_bind);
         player_inputs.medium = keyboard_input.pressed(player_keybinds.medium_bind);
         player_inputs.heavy = keyboard_input.pressed(player_keybinds.heavy_bind);
+        player_inputs.unique = keyboard_input.pressed(player_keybinds.unique_bind);
         player_inputs.special = keyboard_input.pressed(player_keybinds.special_bind);
         /* 
         println!("player_inputs: {}", player_inputs.up);
@@ -852,6 +1550,7 @@ pub fn testing_new_input_system(
         println!("player_inputs: {}", player_inputs.light);
         println!("player_inputs: {}", player_inputs.medium);
         println!("player_inputs: {}", player_inputs.heavy);
+        println!("player_inputs: {}", player_inputs.unique);
         println!("player_inputs: {}", player_inputs.special);
         */
     }
