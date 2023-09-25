@@ -16,8 +16,8 @@ fn main() {
 
         .add_state::<AppState>()
         // Plugins for framerate in the console
-        //.add_plugin(LogDiagnosticsPlugin::default())
-        //.add_plugin(FrameTimeDiagnosticsPlugin::default())
+        //.add_plugins(LogDiagnosticsPlugin::default())
+        //.add_plugins(FrameTimeDiagnosticsPlugin::default())
         // Plugins for framerate in the console
         // add plugin for Main Menu
         .add_plugins(MainMenuPlugin)

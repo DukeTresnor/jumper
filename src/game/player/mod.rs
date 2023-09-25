@@ -16,7 +16,8 @@ use crate::game::SimulationState;
 pub const PLAYER_SPEED_VERTICAL: f32 = 400.0;
 pub const PLAYER_SPEED_HORIZONTAL: f32 = 100.0;
 pub const PLAYER_SIZE: f32 = 64.0; // This is the player sprite size, not necessarily the size of each frame in the spritesheet
-pub const MARISA_PLAYER_SIZE: f32 = 103.0;
+//pub const MARISA_PLAYER_SIZE: f32 = 103.0;
+pub const MARISA_PLAYER_SIZE: f32 = 144.0;
 
 pub const SPECIAL_MOVE_BUFFER_TIME: f32 = 0.5;
 pub const DIRECTION_JUMP_BUFFER_TIME: f32 = 0.5;
@@ -40,7 +41,8 @@ impl Plugin for PlayerPlugin {
                     testing_new_input_system,
                     player_ground_attack,
                     player_movement,
-                    //debug_player_state,
+                    loop_walking_animation,
+                    //_debug_player_state,
                     //debug_player_velocity,
                     player_flip,
                 )

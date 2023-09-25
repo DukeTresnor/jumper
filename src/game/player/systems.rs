@@ -393,7 +393,7 @@ pub fn despawn_player(
 // we again also need the time resource
 pub fn player_movement(
     keyboard_input: Res<Input<KeyCode>>,
-    mut player_query: Query<(&mut Transform, &mut AnimationIndices, &mut TextureAtlasSprite, &mut PlayerInput, &mut JumpVelocity, &MovementState, &AttackState, &SpriteSheetIndeces), With<Player>>,
+    mut player_query: Query<(&mut Transform, &mut AnimationIndices, &mut TextureAtlasSprite, &mut PlayerInput, &mut JumpVelocity, &mut MovementState, &AttackState, &SpriteSheetIndeces), With<Player>>,
     time: Res<Time>,
     //player_state: Res<State<PlayerState>>,
     //mut next_player_state: ResMut<NextState<PlayerState>>,
@@ -403,7 +403,7 @@ pub fn player_movement(
     // Get the single mutable thing that exists in player_query, and store it into the transform variable
     // If transform gets a Transform component, continue the if block
     //if let Ok((mut transform, mut animation_indeces, mut texture_atlas_sprite_sprite_sheet)) = player_query.get_single_mut() {
-    for (mut transform, mut animation_indeces, mut texture_atlas_sprite_sprite_sheet, mut player_input, mut player_velocity, movement_state, attack_state, sprite_sheet_indeces) in player_query.iter_mut() {
+    for (mut transform, mut animation_indeces, mut texture_atlas_sprite_sprite_sheet, mut player_input, mut player_velocity, mut movement_state, attack_state, sprite_sheet_indeces) in player_query.iter_mut() {
         if !attack_state.is_attacking && movement_state.is_grounded {
 
             // holding: player_state.0 == PlayerState::Grounded
@@ -440,41 +440,57 @@ pub fn player_movement(
                 animation_indeces.last
             };
 */
-
-
+            if player_input.left || player_input.right {
+                println!("ksjnvkfjnvkdnvkndkjnkndkkdjn");
+                movement_state.is_walking = true;
+            } else {
+                movement_state.is_walking = false;
+            }
             // Handle the different keyboard inputs that dictate movement
             if player_input.left {
+                //movement_state.is_walking = true;
                 direction += Vec3::new(-1.0, 0.0, 0.0);
+                //println!("left movement state: {}", movement_state.is_walking);
+                //if !texture_atlas_sprite_sprite_sheet.flip_x {
+                //    // set indeces to walking animation
+                //    animation_indeces.first = sprite_sheet_indeces.walk_back_first;
+                //    animation_indeces.last = sprite_sheet_indeces.walk_back_last;
+                //    texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+                //} else {
+                //    // when texture_atlas_sprite_sprite_sheet.flip_x is true
+                //    animation_indeces.first = sprite_sheet_indeces.walk_forward_first;
+                //    animation_indeces.last = sprite_sheet_indeces.walk_forward_last;
+                //    texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+                //}
 
-                if !texture_atlas_sprite_sprite_sheet.flip_x {
-                    // set indeces to walking animation
-                    animation_indeces.first = sprite_sheet_indeces.walk_back_first;
-                    animation_indeces.last = sprite_sheet_indeces.walk_back_last;
-                    texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
-                } else {
-                    // when texture_atlas_sprite_sprite_sheet.flip_x is true
-                    animation_indeces.first = sprite_sheet_indeces.walk_forward_first;
-                    animation_indeces.last = sprite_sheet_indeces.walk_forward_last;
-                    texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
-                }
-                
+            } else {
+                //movement_state.is_walking = false;
+                //println!("left movement state: {}", movement_state.is_walking);
             }
+
             if player_input.right {
+                //movement_state.is_walking = true;
                 direction += Vec3::new(1.0, 0.0, 0.0);
 
-                if !texture_atlas_sprite_sprite_sheet.flip_x {
-                    // set indeces to walking animation
-                    animation_indeces.first = sprite_sheet_indeces.walk_forward_first;
-                    animation_indeces.last = sprite_sheet_indeces.walk_forward_last;
-                    texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
-                } else {
-                    //  when texture_atlas_sprite_sprite_sheet.flip_x is true
-                    animation_indeces.first = sprite_sheet_indeces.walk_back_first;
-                    animation_indeces.last = sprite_sheet_indeces.walk_back_last;
-                    texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
-                }
+                //println!("right movement state: {}", movement_state.is_walking);
 
-            }  
+                //if !texture_atlas_sprite_sprite_sheet.flip_x {
+                //    // set indeces to walking animation
+                //    animation_indeces.first = sprite_sheet_indeces.walk_forward_first;
+                //    animation_indeces.last = sprite_sheet_indeces.walk_forward_last;
+                //    texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+                //} else {
+                //    //  when texture_atlas_sprite_sprite_sheet.flip_x is true
+                //    animation_indeces.first = sprite_sheet_indeces.walk_back_first;
+                //    animation_indeces.last = sprite_sheet_indeces.walk_back_last;
+                //    texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+                //}
+
+            } else {
+                //movement_state.is_walking = false;
+                //println!("right movement state: {}", movement_state.is_walking);
+            }
+
             //
             if direction.length() > 0.0 {
                 direction = direction.normalize();
@@ -520,7 +536,75 @@ pub fn player_movement(
 
 
 
+pub fn loop_walking_animation(
+    //
+    mut player_query: Query<(&mut AnimationIndices, &mut TextureAtlasSprite, &mut MovementState, &SpriteSheetIndeces, &PlayerInput), With<Player>>,
+    
+) {
+    //
+    for (mut animation_indeces, mut texture_atlas_sprite_sprite_sheet, mut movement_state, sprite_sheet_indeces, player_input) in player_query.iter_mut() {
+        //
 
+        
+        println!("movement state external: {}", movement_state.is_walking);
+
+
+        if texture_atlas_sprite_sprite_sheet.index == animation_indeces.last { //|| !movement_state.is_walking
+            // When you try to implement looping for jump and crouch animations, I think they sprite logic should go in this block
+
+            if player_input.left {
+                if !texture_atlas_sprite_sprite_sheet.flip_x {
+                    // set indeces to walking animation
+                    animation_indeces.first = sprite_sheet_indeces.walk_back_first;
+                    animation_indeces.last = sprite_sheet_indeces.walk_back_last;
+                    texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+                } else {
+                    // when texture_atlas_sprite_sprite_sheet.flip_x is true
+                    animation_indeces.first = sprite_sheet_indeces.walk_forward_first;
+                    animation_indeces.last = sprite_sheet_indeces.walk_forward_last;
+                    texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+                }
+            }
+
+            if player_input.right {
+                if !texture_atlas_sprite_sprite_sheet.flip_x {
+                    // set indeces to walking animation
+                    animation_indeces.first = sprite_sheet_indeces.walk_forward_first;
+                    animation_indeces.last = sprite_sheet_indeces.walk_forward_last;
+                    texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+                } else {
+                    //  when texture_atlas_sprite_sprite_sheet.flip_x is true
+                    animation_indeces.first = sprite_sheet_indeces.walk_back_first;
+                    animation_indeces.last = sprite_sheet_indeces.walk_back_last;
+                    texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+                }
+
+            }
+        }
+
+        // this block overrides every other animation i think
+        //if !movement_state.is_walking {
+        //    animation_indeces.first = sprite_sheet_indeces.idle_first;
+        //    animation_indeces.last = sprite_sheet_indeces.idle_last;
+        //    texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
+        //}
+
+        
+        // I want some logic here that resets me to idle animations if im not walking, jumping or crouching
+
+
+
+
+/*
+
+
+
+*/
+
+
+
+    }
+}
 
 
 
@@ -1202,6 +1286,8 @@ pub fn player_ground_attack(
 }
 
 
+
+
 // Add commands here, in order to despawn hitboxes from the current action
 pub fn player_reset_to_neutral(
     mut player_query: Query<(&mut AnimationIndices, &mut TextureAtlasSprite, &mut AttackState, &mut MovementState, &SpriteSheetIndeces), With<Player>>,
@@ -1217,14 +1303,19 @@ pub fn player_reset_to_neutral(
             texture_atlas_sprite_sprite_sheet.index = animation_indeces.first;
             //next_player_state.set(PlayerState::Grounded);
 
+            println!("resetting");
+
             // reset to neutral state
             //next_attack_state.set(AttackState::Neutral);
             attack_state.is_attacking = false;
         }
 
-        if texture_atlas_sprite_sprite_sheet.index == animation_indeces.last && movement_state.is_walking {
-            // i want to keep looping if you are holding walk
-        }
+        //if texture_atlas_sprite_sprite_sheet.index == animation_indeces.last && movement_state.is_walking {
+        //    // i want to keep looping if you are holding walk
+        //    // basically if you are holding left or right i want to not reset to neutral
+        //    println!("We're Walking");
+        //    movement_state.is_walking = false;
+        //}
 
 
     }
@@ -1238,11 +1329,12 @@ pub fn confine_player_movement(
     //if let Ok(mut player_transform) = player_query.get_single_mut() {
     for mut player_transform in player_query.iter_mut() {    
         let window = window_query.get_single().unwrap();
-        let half_player_size = MARISA_PLAYER_SIZE / 2.0;
-        let x_pos_min = 0.0 + half_player_size;
-        let x_pos_max = window.width() - half_player_size;
-        let y_pos_min = 0.0 + half_player_size;
-        let y_pos_max = window.height() - half_player_size;
+        let half_player_size_horizontal = PLAYER_SIZE / 2.0;
+        let half_player_size_vertical   = MARISA_PLAYER_SIZE / 2.0;
+        let x_pos_min = 0.0 + half_player_size_horizontal;
+        let x_pos_max = window.width() - half_player_size_horizontal;
+        let y_pos_min = 0.0 + half_player_size_vertical;
+        let y_pos_max = window.height() - half_player_size_vertical;
         //
         let mut translation = player_transform.translation;
         
@@ -1268,7 +1360,7 @@ pub fn _debug_player_state(
     player_query: Query<(&MovementState, &AttackState, &PlayerNumber), With<Player>>,
 ) {
     for (movement_state, attack_state, player_number) in player_query.iter() {
-        println!("printing state for player {} -- is_grounded: {}, is_attacking: {}", player_number.player_number, movement_state.is_grounded, attack_state.is_attacking);
+        println!("printing state for player {} -- is_grounded: {}, is_walking: {}, is_attacking: {}", player_number.player_number, movement_state.is_grounded, movement_state.is_walking, attack_state.is_attacking);
 
     }
 }
