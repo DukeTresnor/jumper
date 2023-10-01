@@ -8,6 +8,9 @@ use bevy::render::camera;
 use bevy::window::PrimaryWindow;
 //use bevy::window::PrimaryWindow;
 
+
+use nalgebra::geometry::Translation;
+
 use crate::game::SimulationState;
 use crate::game::components::*;
 //use crate::game::resources::*;
@@ -22,6 +25,8 @@ use super::player::components::Player;
 
 
 pub const TEMP_VEL_MOD: f32 = 10.0;
+pub const CAMERA_LERP_FACTOR: f32 = 0.1;
+pub const CAMERA_ORTHOGRAPHIC_PROJECTION_FACTOR: f32 = 100.0;
 
 pub fn toggle_simulation_state(
     // needs access to keyboard input
@@ -186,29 +191,47 @@ pub fn animate_sprite(
 
 
 // Camera Zooming Systems //
-// Camera kind of works, very wonky but the idea is there
+// Need to fund adjustment that works for you
 pub fn camera_zoom(
     //
     player_query: Query<&Transform, (With<Player>, Without<MyGameCamera>)>,
     mut camera_query: Query<(&mut Transform, &mut OrthographicProjection), (Without<Player>, With<MyGameCamera>)>,
 ) {
-    //
-    for player_transform in player_query.iter() {
-        for (mut camera_transform, mut orthographic_projection) in camera_query.iter_mut() {
-            // Calculate the midpoint between the two players
-            let midpoint = (player_transform.translation + camera_transform.translation) / 2.0;
-            // Update the camera position
-            camera_transform.translation.x = midpoint.x;
-            camera_transform.translation.y = midpoint.y;
+    // Following strat for dealing with multiple players seems good??
+    let mut player_positions = Vec::new();
 
-            // Calculate the new distance between the two players
-            let player_camera_distance = player_transform.translation.distance(camera_transform.translation);
-
-            // Adjust the camera's orthographic projection component based on the distance between itself and the given player
-            orthographic_projection.scale = 1.0 / (player_camera_distance / 100.0 + 1.0);
-
-        }
+    // bundle the two player positions into player_positions
+    for player_transform in &mut player_query.iter() {
+        player_positions.push(player_transform.translation);
     }
+
+
+    // Calculate the midpoint between the two players
+    let midpoint = player_positions.iter().fold(Vec3::ZERO, |acc, &pos| acc + pos) / player_positions.len() as f32;
+
+
+    for (mut camera_transform, mut orthographic_projection) in camera_query.iter_mut() {
+        
+        //let midpoint = (player_transform.translation + camera_transform.translation) / 2.0;
+
+
+        // Calculate the maximum distance from the midpoint to any player
+        let max_distance = player_positions.iter().map(|&pos| pos.distance(midpoint)).fold(0.0, f32::max);
+
+        // Adjust the camera's orthographic projection component based on the distance between itself and the given player
+        //orthographic_projection.scale = 1.0 / (max_distance / 100.0 + 1.0);
+        orthographic_projection.scale = max_distance / CAMERA_ORTHOGRAPHIC_PROJECTION_FACTOR + 1.0;
+
+        // Update the camera position
+        //camera_transform.translation.x = midpoint.x;
+        //camera_transform.translation.y = midpoint.y;
+
+        let lerp_factor = CAMERA_LERP_FACTOR;
+        let interpolated_position = camera_transform.translation.lerp(*&midpoint, lerp_factor);
+        camera_transform.translation = interpolated_position;
+
+    }
+
 }
 
 
