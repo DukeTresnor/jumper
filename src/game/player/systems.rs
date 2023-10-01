@@ -535,7 +535,7 @@ pub fn player_movement(
 }
 
 
-
+// This should be renamed into player_movement_animation
 pub fn loop_walking_animation(
     //
     mut player_query: Query<(&mut AnimationIndices, &mut TextureAtlasSprite, &mut MovementState, &SpriteSheetIndeces, &PlayerInput), With<Player>>,
@@ -637,7 +637,7 @@ pub fn temp_player_up_movement(
 // temporary //
 
 
-pub fn player_jump(
+pub fn _player_jump(
     keyboard_input: Res<Input<KeyCode>>,
     mut player_query: Query<(&mut Transform, &mut JumpVelocity, &ActionStateVector), With<Player>>,
     //player_state: Res<State<PlayerState>>,
@@ -686,7 +686,13 @@ pub fn player_jump(
 
 
 
-
+// This should be renamed to player_attack
+//  add a new system called player_attack_animation
+//  this system should take the code blocks currently in player_attack that deal with setting the animation indeces
+//  player_attack should then be for dealing with input...
+// No i dont need to do this -- both systems would have to process inputs
+//  need to think about this more...
+//
 // changing the indeces works!
 // now just need a way to make the coding process more efficient
 //   and I need a better sprite sheet

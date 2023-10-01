@@ -50,6 +50,7 @@ impl Plugin for GamePlugin {
                 (
                     animate_sprite,
                     apply_gravity_and_velocity,
+                    camera_zoom,
                 )
             
                 .run_if(in_state(AppState::Game))

@@ -4,6 +4,7 @@
 //   entering and exiting AppState::Game, respectively
 
 use::bevy::prelude::*;
+use bevy::render::camera;
 use bevy::window::PrimaryWindow;
 //use bevy::window::PrimaryWindow;
 
@@ -13,7 +14,11 @@ use crate::game::components::*;
 
 use crate::game::TILE_SIZE;
 
+use crate::components::*;
+
+use super::player;
 use super::player::components::JumpVelocity;
+use super::player::components::Player;
 
 
 pub const TEMP_VEL_MOD: f32 = 10.0;
@@ -178,3 +183,35 @@ pub fn animate_sprite(
 
 
 // Animate sprite //
+
+
+// Camera Zooming Systems //
+// Camera kind of works, very wonky but the idea is there
+pub fn camera_zoom(
+    //
+    player_query: Query<&Transform, (With<Player>, Without<MyGameCamera>)>,
+    mut camera_query: Query<(&mut Transform, &mut OrthographicProjection), (Without<Player>, With<MyGameCamera>)>,
+) {
+    //
+    for player_transform in player_query.iter() {
+        for (mut camera_transform, mut orthographic_projection) in camera_query.iter_mut() {
+            // Calculate the midpoint between the two players
+            let midpoint = (player_transform.translation + camera_transform.translation) / 2.0;
+            // Update the camera position
+            camera_transform.translation.x = midpoint.x;
+            camera_transform.translation.y = midpoint.y;
+
+            // Calculate the new distance between the two players
+            let player_camera_distance = player_transform.translation.distance(camera_transform.translation);
+
+            // Adjust the camera's orthographic projection component based on the distance between itself and the given player
+            orthographic_projection.scale = 1.0 / (player_camera_distance / 100.0 + 1.0);
+
+        }
+    }
+}
+
+
+
+
+// Camera Zooming Systems //

@@ -9,6 +9,8 @@
 
 
 
+
+
 // use statements
 
 use bevy::prelude::*;
@@ -17,6 +19,7 @@ use bevy::app::AppExit;
 
 use crate::AppState;
 use crate::game::SimulationState;
+use crate::components::*;
 
 
 
@@ -27,10 +30,13 @@ pub fn spawn_camera(
 ) {
     let window = window_query.get_single().unwrap();
     commands.spawn(
-        Camera2dBundle {
-            transform: Transform::from_xyz(window.width() / 2.0, window.height() / 2.0, 500.0),
-            ..default()
-        },
+        (
+            Camera2dBundle {
+                transform: Transform::from_xyz(window.width() / 2.0, window.height() / 2.0, 500.0),
+                ..default()
+            },
+            MyGameCamera {},
+        )
     );
 }
 

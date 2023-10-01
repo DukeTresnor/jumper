@@ -8,6 +8,7 @@ use systems::*;
 mod main_menu;
 mod game;
 mod systems;
+mod components;
 
 
 fn main() {
