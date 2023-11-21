@@ -25,8 +25,9 @@ use super::player::components::Player;
 
 
 pub const TEMP_VEL_MOD: f32 = 10.0;
-pub const CAMERA_LERP_FACTOR: f32 = 0.1;
-pub const CAMERA_ORTHOGRAPHIC_PROJECTION_FACTOR: f32 = 100.0;
+pub const CAMERA_LERP_FACTOR: f32 = 1.0;
+pub const CAMERA_ORTHOGRAPHIC_PROJECTION_FACTOR: f32 = 200.0;
+pub const CENTERED_CAMERA_FACTOR: f32 = 0.5;
 
 pub fn toggle_simulation_state(
     // needs access to keyboard input
@@ -195,8 +196,12 @@ pub fn animate_sprite(
 pub fn camera_zoom(
     //
     player_query: Query<&Transform, (With<Player>, Without<MyGameCamera>)>,
+    window_query: Query<&Window, With<PrimaryWindow>>,
     mut camera_query: Query<(&mut Transform, &mut OrthographicProjection), (Without<Player>, With<MyGameCamera>)>,
 ) {
+    let window = window_query.get_single().unwrap();
+    let window_width = window.width();
+
     // Following strat for dealing with multiple players seems good??
     let mut player_positions = Vec::new();
 
@@ -216,12 +221,17 @@ pub fn camera_zoom(
 
 
         // Calculate the maximum distance from the midpoint to any player
+        // this max distance should just be from the midpoint to the wall shouldn't it?
         let max_distance = player_positions.iter().map(|&pos| pos.distance(midpoint)).fold(0.0, f32::max);
 
+        
         // Adjust the camera's orthographic projection component based on the distance between itself and the given player
         //orthographic_projection.scale = 1.0 / (max_distance / 100.0 + 1.0);
-        orthographic_projection.scale = max_distance / CAMERA_ORTHOGRAPHIC_PROJECTION_FACTOR + 1.0;
+        orthographic_projection.scale = max_distance / CAMERA_ORTHOGRAPHIC_PROJECTION_FACTOR + CENTERED_CAMERA_FACTOR;
 
+
+
+        
         // Update the camera position
         //camera_transform.translation.x = midpoint.x;
         //camera_transform.translation.y = midpoint.y;

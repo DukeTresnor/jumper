@@ -6,6 +6,8 @@
 use bevy::prelude::*;
 
 // Non component structs //
+// adding component clause for now...
+#[derive(Component)]
 pub struct CollisionBox {
     pub position: Vec3,
     pub size: Vec2,
@@ -218,6 +220,8 @@ pub struct SpriteSheetIndeces {
 pub struct MovementState {
     pub is_grounded: bool,
     pub is_walking: bool,
+    pub is_dashing: bool,
+    pub is_crouching: bool,
 }
 
 #[derive(Component)]
@@ -227,12 +231,12 @@ pub struct AttackState {
 
 #[derive(Component)]
 pub struct HitState {
-    pub is_in_hitstun: i32,
+    pub is_in_hitstun: bool,
 }
 
 #[derive(Component)]
 pub struct BlockState {
-    pub is_in_blockstun: i32,
+    pub is_in_blockstun: bool,
 }
 
 #[derive(Component)]
