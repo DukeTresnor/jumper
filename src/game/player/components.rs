@@ -3,21 +3,22 @@
 // why is this here?
 //use std::thread::local_impl::Key;
 
-use bevy::prelude::*;
+use bevy::{prelude::*, utils::HashMap};
 
 // Non component structs //
 // adding component clause for now...
-#[derive(Component)]
+//#[derive(Component)]
+#[derive(Component, Debug)]
 pub struct CollisionBox {
-    pub position: Vec3,
+    pub box_type: BoxType,
+    pub offset: Vec2,
     pub size: Vec2,
+    pub active: bool,
     pub lifespan: Timer,
 }
 
+
 // Non component structs //
-
-
-
 
 
 // Define Player component
@@ -35,7 +36,6 @@ pub struct JumpVelocity {
 // action vector has a keycode and a f32, the f32 is meant to hold time values
 #[derive(Component)]
 pub struct ActionStateVector {
-
     pub action_vector: Vec<(KeyCode, f32)>,
 }
 
@@ -58,6 +58,54 @@ pub struct PlayerInput {
     pub special: bool,
 }
 
+//#[derive(Component, Debug)]
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
+pub enum BoxType {
+    Hurt,
+    HurtCrouching,
+    Throw,
+    OverheadHurt,
+    OverheadHit,
+    LightHurt,
+    LightHit,
+    LightHurtCrouching,
+    LightHitCrouching,
+    LightHurtJumping,
+    LightHitJumping,
+    MediumHurt,
+    MediumHit,
+    MediumHurtCrouching,
+    MediumHitCrouching,
+    MediumHurtJumping,
+    MediumHitJumping,
+    HeavyHurt,
+    HeavyHit,
+    HeavyHurtCrouching,
+    HeavyHitCrouching,
+    HeavyHurtJunmping,
+    HeavyHitJumping,
+    UniqueHurt,
+    UniqueHit,
+    UniqueHurtCrouching,
+    UniqueHitCrouching,
+    UniqueHurtJumping,
+    UniqueHitJumping,
+    SpecialHurt,
+    SpecialHit,
+    SpecialHurtCrouching,
+    SpecialHitCrouching,
+    SpecialHurtJumping,
+    SpecialHitJumping,
+
+}
+
+#[derive(Component)]
+pub struct CollisionInfo {
+    //pub box_type: HashMap<BoxType, CollisionBox>,
+    pub collision_vector: Vec<CollisionBox>,
+}
+
+/* 
 #[derive(Component)]
 pub struct CollisionInfo {
     hurt: CollisionBox,
@@ -95,10 +143,8 @@ pub struct CollisionInfo {
     special_hit_crouching: CollisionBox,
     special_hurt_jumping: CollisionBox,
     special_hit_jumping: CollisionBox,
-
-
 }
-
+*/
 
 #[derive(Component)]
 pub struct InputBinding {

@@ -16,5 +16,6 @@
         "./Cargo.toml",
         "./Cargo.toml",
         "./Cargo.toml"
-    ]
+    ],
+    "git.ignoreLimitWarning": true
 }

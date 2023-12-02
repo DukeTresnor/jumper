@@ -1,29 +1,47 @@
 // game/player/systems.rs
 
 
-use bevy::a11y::accesskit::Action;
-use bevy::animation;
-use bevy::ecs::storage;
-use bevy::input::keyboard;
+//use std::process::Child;
+
+//use bevy::a11y::accesskit::Action;
+//use bevy::animation;
+//use bevy::ecs::storage;
+//use bevy::input::keyboard;
 use bevy::input::keyboard::KeyboardInput;
 use bevy::prelude::*;
+//use bevy::utils::HashMap;
 use bevy::window::PrimaryWindow;
 
 use crate::game::components::*;
-use crate::game::player;
+//use crate::game::player;
 use crate::game::resources::*;
 use crate::game::player::components::*;
 //use crate::game::player::PlayerState;
 //use crate::game::player::AttackState;
 use crate::game::player::{PLAYER_SPEED_VERTICAL, PLAYER_SPEED_HORIZONTAL, PLAYER_SIZE, MARISA_PLAYER_SIZE};
 use crate::game::GRAVITY;
-use crate::game::SimulationState;
+//use crate::game::SimulationState;
 
 use bevy::input::ButtonState;
 
 use super::SPECIAL_MOVE_BUFFER_TIME;
-use super::DIRECTION_JUMP_BUFFER_TIME;
+//use super::DIRECTION_JUMP_BUFFER_TIME;
 
+
+
+
+// Imports from assets / character_info //
+
+
+
+// Imports from assets / character_info //
+
+
+
+pub const HURT_DURATION: f32 = 9.0;
+
+
+// eventually, have some group of values that we can reference that represent the collision boxes of each particular hitbox and hurtbox for a particular state
 pub fn spawn_player(
     mut commands: Commands,
     window_query: Query<&Window, With<PrimaryWindow>>,
@@ -63,6 +81,56 @@ pub fn spawn_player(
     let texture_atlas_handle_second = texture_atlases.add(texture_atlas_second);
     let animation_indices_second = AnimationIndices { first: 0, last: 9 };
 
+
+    let main_transform_player_1: Transform = Transform::from_xyz(window.width() / 4.0, window.height() / 2.0, 0.0);
+    let hurt_offset: Vec2 = Vec2::new(0.0, 0.0);
+    let hurt_size: Vec2 = Vec2::new(10.0, 0.0);
+
+
+    let main_transform_player_2: Transform = Transform::from_xyz(window.width() / 2.0, window.height() / 2.0, 0.0);
+
+
+    // -- temp section -- //
+    let mut box_vector_1: Vec<CollisionBox> = Vec::new();
+    box_vector_1.push(
+        
+        CollisionBox {      
+            box_type: BoxType::Hurt,
+            offset: hurt_offset,
+            size: hurt_size,
+            active: false,
+            lifespan: Timer::from_seconds(HURT_DURATION, TimerMode::Repeating),
+        }
+        
+    );
+
+    box_vector_1.push(
+        CollisionBox {      
+            box_type: BoxType::HurtCrouching,
+            offset: hurt_offset,
+            size: hurt_size,
+            active: false,
+            lifespan: Timer::from_seconds(HURT_DURATION, TimerMode::Repeating),
+        }
+    );
+
+    let mut box_vector_2: Vec<CollisionBox> = Vec::new();
+    box_vector_2.push(
+        CollisionBox {      
+            box_type: BoxType::HurtCrouching,
+            offset: hurt_offset,
+            size: hurt_size,
+            active: false,
+            lifespan: Timer::from_seconds(HURT_DURATION, TimerMode::Repeating),
+        }
+         
+    );
+
+    //box_type: HashMap<BoxType, Vec<CollisionBox>>,
+    // do above pushing for each BoxType
+    // -- temp section -- //    
+    
+
     // spawn a Player with the Player and Gravity components
     commands.spawn(
         (
@@ -74,7 +142,7 @@ pub fn spawn_player(
             //    ..default()
             //},
             SpriteSheetBundle {
-                transform: Transform::from_xyz(window.width() / 4.0, window.height() / 2.0, 0.0),
+                transform: main_transform_player_1,
                 texture_atlas: texture_atlas_handle,
                 sprite: TextureAtlasSprite::new(animation_indices.first),
                 ..default()
@@ -218,44 +286,18 @@ pub fn spawn_player(
                 player_number: 1,
             },
 
-            
         )
-
-                /*
-                
-                CollisionBox {
-                    position: Vec3::new(0.0, 0.0, 0.0),
-                    size: Vec2::new(10.0, 10.0),
-                    lifespan: Timer::from_seconds(1.0, TimerMode::Repeating),
-                },
-                
-                 */
-
-
-    )
-    .with_children(
-        |parent| {
-            parent.spawn(
-                (
-                    CollisionBox {
-                        position: Vec3::new(0.0, 0.0, 0.0),
-                        size: Vec2::new(10.0, 10.0),
-                        lifespan: Timer::from_seconds(1.0, TimerMode::Repeating),
-                    },
-                )
-
-            );
-        },
-
-
-    )
-    ;
+    ).insert(
+        CollisionInfo {
+            collision_vector: box_vector_1,
+        }
+    );
 
 
     commands.spawn(
         (
             SpriteSheetBundle {
-                transform: Transform::from_xyz(window.width() / 2.0, window.height() / 2.0, 0.0),
+                transform: main_transform_player_2,
                 texture_atlas: texture_atlas_handle_second,
                 sprite: TextureAtlasSprite::new(animation_indices_second.first),
                 ..default()
@@ -397,8 +439,12 @@ pub fn spawn_player(
             },
             PlayerNumber {
                 player_number: 2,
-            }
+            },
         )
+    ).insert(
+        CollisionInfo {
+            collision_vector: box_vector_2,
+        }
     );
 
 }
@@ -420,6 +466,9 @@ pub fn despawn_player(
 
 // mut player_query: Query<(&ActionStateVector, &mut AnimationIndices,
 // &mut TextureAtlasSprite, &PlayerInput, &MovementState, &mut AttackState, &SpriteSheetIndeces), With<Player>>,
+
+
+// bug -- right now I can crouch while walking, i shouldn't be moving while crouching as well
 
 
 // player_query needs the transform along with player b/c we are trying to move the player
@@ -1415,15 +1464,22 @@ pub fn _debug_player_velocity(
 }
 
 pub fn _debug_collision_check(
-    player_query: Query<&CollisionBox, With<Player>>,
+    player_query: Query<(&CollisionInfo, &PlayerNumber), With<Player>>,
 ) {
-    for (collision_box) in player_query.iter() {
-        println!("collisoin_box position: {}, collision_box size: {}", collision_box.position, collision_box.size);
-    }
+    for (collision_info, player_number) in player_query.iter() {
+        if player_number.player_number == 1 {
+            for collision_box in &collision_info.collision_vector {
+                println!("box type               : {:?}", collision_box.box_type);
+                println!("collision box transform: {:?}", collision_box.offset);
+                println!("collision box size     : {:?}", collision_box.size);
+                println!("collision box active   : {:?}", collision_box.active);
+                println!("collision box lifespan : {:?}", collision_box.lifespan);
+            }            
+        }
 
-    // this isn't working atm...
+    }
 }
-// collision_box timer: {:?}
+
 
 pub fn player_flip(
     //
@@ -1558,7 +1614,7 @@ pub fn ground_check(
         
 
             // if (horizontal_distance < horizontal_player_length + horizontal_floor_length)
-            if vertical_distance < vertical_player_length + vertical_floor_length {
+            if vertical_distance < (vertical_player_length + vertical_floor_length) {
 
                 if !movement_state.is_grounded {
                     movement_state.is_grounded = true;
