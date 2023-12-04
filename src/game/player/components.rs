@@ -11,6 +11,7 @@ use bevy::{prelude::*, utils::HashMap};
 #[derive(Component, Debug)]
 pub struct CollisionBox {
     pub box_type: BoxType,
+    pub hurt_hit: HurtHit,
     pub offset: Vec2,
     pub size: Vec2,
     pub active: bool,
@@ -56,6 +57,12 @@ pub struct PlayerInput {
     pub heavy: bool,
     pub unique: bool,
     pub special: bool,
+}
+
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
+pub enum HurtHit {
+    Hurtbox,
+    HitBox,
 }
 
 //#[derive(Component, Debug)]

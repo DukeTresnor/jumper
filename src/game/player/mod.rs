@@ -41,11 +41,14 @@ impl Plugin for PlayerPlugin {
                     testing_new_input_system,
                     player_ground_attack,
                     player_movement,
+                    player_flip,
+                    hitbox_state_handler,
+                    collision_handler,
                     //loop_walking_animation,
                     //_debug_player_state,
                     //_debug_player_velocity,
                     _debug_collision_check,
-                    player_flip,
+                    
                 )
                 .run_if(in_state(AppState::Game))
                 .run_if(in_state(SimulationState::Running))

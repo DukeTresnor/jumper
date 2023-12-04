@@ -9,6 +9,7 @@
 //use bevy::input::keyboard;
 use bevy::input::keyboard::KeyboardInput;
 use bevy::prelude::*;
+use bevy::sprite::collide_aabb::collide;
 //use bevy::utils::HashMap;
 use bevy::window::PrimaryWindow;
 
@@ -96,6 +97,7 @@ pub fn spawn_player(
         
         CollisionBox {      
             box_type: BoxType::Hurt,
+            hurt_hit: HurtHit::Hurtbox,
             offset: hurt_offset,
             size: hurt_size,
             active: false,
@@ -103,21 +105,23 @@ pub fn spawn_player(
         }
         
     );
-
+    /* 
     box_vector_1.push(
         CollisionBox {      
             box_type: BoxType::HurtCrouching,
+            hurt_hit: HurtHit::Hurtbox,
             offset: hurt_offset,
             size: hurt_size,
             active: false,
             lifespan: Timer::from_seconds(HURT_DURATION, TimerMode::Repeating),
         }
     );
-
+    */
     let mut box_vector_2: Vec<CollisionBox> = Vec::new();
     box_vector_2.push(
         CollisionBox {      
-            box_type: BoxType::HurtCrouching,
+            box_type: BoxType::Hurt,
+            hurt_hit: HurtHit::Hurtbox,
             offset: hurt_offset,
             size: hurt_size,
             active: false,
@@ -471,10 +475,11 @@ pub fn despawn_player(
 // bug -- right now I can crouch while walking, i shouldn't be moving while crouching as well
 
 
+// no more moving while holding left and right, but I need to have it reset to neutral state wise and animation wise
 // player_query needs the transform along with player b/c we are trying to move the player
 // we again also need the time resource
 pub fn player_movement(
-    mut player_query: Query<(&mut Transform, &mut AnimationIndices, &mut TextureAtlasSprite, &mut PlayerInput, &mut JumpVelocity, &mut MovementState, &AttackState, &SpriteSheetIndeces), With<Player>>,
+    mut player_query: Query<(&mut Transform, &mut AnimationIndices, &mut TextureAtlasSprite, &PlayerInput, &mut JumpVelocity, &mut MovementState, &AttackState, &SpriteSheetIndeces), With<Player>>,
     time: Res<Time>,
     //player_state: Res<State<PlayerState>>,
     //mut next_player_state: ResMut<NextState<PlayerState>>,
@@ -484,8 +489,8 @@ pub fn player_movement(
     // Get the single mutable thing that exists in player_query, and store it into the transform variable
     // If transform gets a Transform component, continue the if block
     //if let Ok((mut transform, mut animation_indeces, mut texture_atlas_sprite_sprite_sheet)) = player_query.get_single_mut() {
-    for (mut transform, mut animation_indeces, mut texture_atlas_sprite_sprite_sheet, mut player_input, mut player_velocity, mut movement_state, attack_state, sprite_sheet_indeces) in player_query.iter_mut() {
-        if !attack_state.is_attacking && movement_state.is_grounded {
+    for (mut transform, mut animation_indeces, mut texture_atlas_sprite_sprite_sheet, player_input, mut player_velocity, mut movement_state, attack_state, sprite_sheet_indeces) in player_query.iter_mut() {
+        if !attack_state.is_attacking && movement_state.is_grounded && !(player_input.left && player_input.right) {
 
             // holding: player_state.0 == PlayerState::Grounded
 
@@ -525,7 +530,7 @@ pub fn player_movement(
 
             // do the following only if you're not walking!
             // Handle the different keyboard inputs that dictate movement
-            if player_input.left {
+            if player_input.left && !movement_state.is_crouching{
                 //movement_state.is_walking = true;
                 direction += Vec3::new(-1.0, 0.0, 0.0);
 
@@ -546,7 +551,7 @@ pub fn player_movement(
 
             }
 
-            if player_input.right {
+            if player_input.right && !movement_state.is_crouching{
                 //movement_state.is_walking = true;
                 direction += Vec3::new(1.0, 0.0, 0.0);
 
@@ -1360,7 +1365,99 @@ pub fn player_ground_attack(
 
 
 
+// This function should just handle hitbox state changes, namely when and what collision boxes become active in the collision info vector
+pub fn hitbox_state_handler (
+    //
+    time: Res<Time>,
+    mut player_query: Query<(&mut CollisionInfo, &AttackState, &MovementState, &PlayerNumber), With<Player>>
+) {
+    //
+    let mut _player_one: i32;
+    let mut _player_two: i32;
+    for (mut collision_info, _attack_state, movement_state, player_number) in player_query.iter_mut() {
+        //
+        if player_number.player_number == 1 {
+            _player_one = 1;
+        }
+        if player_number.player_number == 2 {
+            _player_two = 2;
+        }
 
+        // I feel like this can be done a better way
+        // Loop through each collision box in the player's collision vector inside the CollisionInfo component
+        for collision_box in collision_info.collision_vector.iter_mut() {
+
+            // If the player is idle or walking, and if the collision box is Hurt and it's not active
+            if !movement_state.is_crouching && !movement_state.is_dashing && collision_box.box_type == BoxType::Hurt && !collision_box.active{
+                //
+
+                collision_box.active = true;
+                collision_box.lifespan.reset()
+            }
+
+
+            collision_box.lifespan.tick(time.delta());
+
+
+            if collision_box.lifespan.finished() {
+                collision_box.active = false;
+                println!("kjgndjkfgndkgnkfnjbk")
+            }
+        }
+
+    }
+}
+
+// This makes the game panic because my collision is a None instead of an actual collision -- but this means at least I made the proper calls!
+// Next is to handle the different types of collisions (most likely Some(Collision) and None, not necessarily the collision sides)
+pub fn collision_handler(
+    //
+    mut player_query: Query<(&mut CollisionInfo, &AttackState, &MovementState, &PlayerNumber, &Transform), With<Player>>
+    // mut collision_events: EventWriter<CollisionEvent>, <-- have this here??
+) {
+    //
+    let mut _player_one: i32;
+    let mut _player_two: i32;
+    
+    let mut _player_one_collision_box_translation = Vec3::new(0.0, 0.0, 0.0);
+    let mut _player_one_collision_box_size = Vec2::new(0.0, 0.0);
+    
+    let mut _player_two_collision_box_translation = Vec3::new(0.0, 0.0, 0.0);
+    let mut _player_two_collision_box_size = Vec2::new(0.0, 0.0);
+
+    for (mut collision_info, attack_state, movement_state, player_number, player_transform) in player_query.iter_mut() {
+        if player_number.player_number == 1 {
+            _player_one = 1;
+        }
+        if player_number.player_number == 2 {
+            _player_two = 2;
+        }
+        for collision_box in collision_info.collision_vector.iter_mut() {
+            if collision_box.active {
+                if player_number.player_number == 1 {
+                    _player_one_collision_box_translation = player_transform.translation + Vec3::new(collision_box.offset.x, collision_box.offset.y, 0.0);
+                    _player_one_collision_box_size = collision_box.size;
+                }
+                if player_number.player_number == 2 {
+                    _player_two_collision_box_translation = player_transform.translation + Vec3::new(collision_box.offset.x, collision_box.offset.y, 0.0);
+                    _player_two_collision_box_size = collision_box.size;
+                }
+            }
+
+        let potential_collision = collide(
+            _player_one_collision_box_translation, 
+            _player_one_collision_box_size,
+            _player_two_collision_box_translation,
+            _player_two_collision_box_size,
+        );
+        println!("what is this: --> {:?}", potential_collision.unwrap());
+
+        }
+    }
+}
+
+
+// Put collision state handler system here?
 // Add commands here, in order to despawn hitboxes from the current action
 pub fn player_reset_to_neutral(
     mut player_query: Query<(&mut AnimationIndices, &mut TextureAtlasSprite, &PlayerInput, &mut AttackState, &mut MovementState, &SpriteSheetIndeces), With<Player>>,
@@ -1480,7 +1577,7 @@ pub fn _debug_collision_check(
     }
 }
 
-
+// why is this here??
 pub fn player_flip(
     //
     mut player_query: Query<(&Transform, &PlayerNumber, &mut TextureAtlasSprite), With<Player>>,
