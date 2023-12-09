@@ -9,6 +9,7 @@
 //use bevy::input::keyboard;
 use bevy::input::keyboard::KeyboardInput;
 use bevy::prelude::*;
+use bevy::sprite::collide_aabb::Collision;
 use bevy::sprite::collide_aabb::collide;
 //use bevy::utils::HashMap;
 use bevy::window::PrimaryWindow;
@@ -30,16 +31,20 @@ use super::SPECIAL_MOVE_BUFFER_TIME;
 
 
 
+// Imports from character stats
 
-// Imports from assets / character_info //
+use crate::game::player::marisa_constants::*;
+
+// Imports from character stats
 
 
 
-// Imports from assets / character_info //
+
 
 
 
 pub const HURT_DURATION: f32 = 9.0;
+pub const LIGHT_DURATION: f32 = 6.0;
 
 
 // eventually, have some group of values that we can reference that represent the collision boxes of each particular hitbox and hurtbox for a particular state
@@ -83,12 +88,39 @@ pub fn spawn_player(
     let animation_indices_second = AnimationIndices { first: 0, last: 9 };
 
 
-    let main_transform_player_1: Transform = Transform::from_xyz(window.width() / 4.0, window.height() / 2.0, 0.0);
-    let hurt_offset: Vec2 = Vec2::new(0.0, 0.0);
-    let hurt_size: Vec2 = Vec2::new(10.0, 0.0);
+    // Assigning Health
+    let player_one_health = MARISA_HEALTH;
+    let player_two_health = MARISA_HEALTH;
 
+    // Assigning Health
+
+    let main_transform_player_1: Transform = Transform::from_xyz(window.width() / 4.0, window.height() / 2.0, 0.0);
 
     let main_transform_player_2: Transform = Transform::from_xyz(window.width() / 2.0, window.height() / 2.0, 0.0);
+
+    // Variables determined from character constants
+    let hurt_offset = MARISA_HURT_OFFSET;
+    let hurt_size = MARISA_HURT_SIZE;
+    let hurt_duration = MARISA_HURT_DURATION;
+
+    
+    let hurt_crouching_offset = MARISA_HURT_CROUCHING_OFFSET;
+    let hurt_crouching_size = MARISA_HURT_CROUCHING_SIZE;
+    let hurt_crouching_duration = MARISA_HURT_CROUCHING_DURATION;
+    
+
+    let light_hurt_offset = MARISA_LIGHT_HURT_OFFSET;
+    let light_hurt_size = MARISA_LIGHT_HURT_SIZE;
+    let light_hurt_duration = MARISA_LIGHT_HURT_DURATION;
+
+    let light_hit_offset = MARISA_LIGHT_HIT_OFFSET;
+    let light_hit_size = MARISA_LIGHT_HIT_SIZE;
+    let light_hit_startup = MARISA_LIGHT_HIT_STARTUP;
+    let light_hit_active = MARISA_LIGHT_HIT_ACTIVE;
+    let light_hit_cooldown = MARISA_LIGHT_HIT_COOLDOWN;
+    // Variables determined from character constants
+
+    
 
 
     // -- temp section -- //
@@ -101,22 +133,49 @@ pub fn spawn_player(
             offset: hurt_offset,
             size: hurt_size,
             active: false,
-            lifespan: Timer::from_seconds(HURT_DURATION, TimerMode::Repeating),
+            lifespan: Timer::from_seconds(hurt_duration, TimerMode::Repeating),
         }
         
     );
-    /* 
+    
     box_vector_1.push(
         CollisionBox {      
             box_type: BoxType::HurtCrouching,
             hurt_hit: HurtHit::Hurtbox,
-            offset: hurt_offset,
-            size: hurt_size,
+            offset: hurt_crouching_offset,
+            size: hurt_crouching_size,
             active: false,
-            lifespan: Timer::from_seconds(HURT_DURATION, TimerMode::Repeating),
+            lifespan: Timer::from_seconds(hurt_crouching_duration, TimerMode::Repeating),
         }
     );
-    */
+    
+    // ... rest of p1's hitboxes
+    // ...
+    box_vector_1.push(
+        CollisionBox {      
+            box_type: BoxType::LightHurt,
+            hurt_hit: HurtHit::Hurtbox,
+            offset: light_hurt_offset,
+            size: light_hurt_size,
+            active: false,
+            lifespan: Timer::from_seconds(light_hurt_duration, TimerMode::Once),
+        }
+    );
+
+    box_vector_1.push(
+        CollisionBox {      
+            box_type: BoxType::LightHit,
+            hurt_hit: HurtHit::HitBox,
+            offset: light_hit_offset,
+            size: light_hit_size,
+            active: false,
+            lifespan: Timer::from_seconds(light_hit_active, TimerMode::Once),
+        }
+    );
+
+
+
+
     let mut box_vector_2: Vec<CollisionBox> = Vec::new();
     box_vector_2.push(
         CollisionBox {      
@@ -125,7 +184,7 @@ pub fn spawn_player(
             offset: hurt_offset,
             size: hurt_size,
             active: false,
-            lifespan: Timer::from_seconds(HURT_DURATION, TimerMode::Repeating),
+            lifespan: Timer::from_seconds(hurt_duration, TimerMode::Repeating),
         }
          
     );
@@ -292,9 +351,15 @@ pub fn spawn_player(
 
         )
     ).insert(
-        CollisionInfo {
-            collision_vector: box_vector_1,
-        }
+        (
+            CollisionInfo {
+                collision_vector: box_vector_1,
+            },
+            PlayerOne,
+            Health {
+                player_health: player_one_health,
+            }
+        )
     );
 
 
@@ -446,9 +511,15 @@ pub fn spawn_player(
             },
         )
     ).insert(
-        CollisionInfo {
-            collision_vector: box_vector_2,
-        }
+        (
+            CollisionInfo {
+                    collision_vector: box_vector_2,
+                },
+            PlayerTwo,
+            Health {
+                player_health: player_two_health,
+            }
+        )
     );
 
 }
@@ -1374,7 +1445,7 @@ pub fn hitbox_state_handler (
     //
     let mut _player_one: i32;
     let mut _player_two: i32;
-    for (mut collision_info, _attack_state, movement_state, player_number) in player_query.iter_mut() {
+    for (mut collision_info, attack_state, movement_state, player_number) in player_query.iter_mut() {
         //
         if player_number.player_number == 1 {
             _player_one = 1;
@@ -1395,13 +1466,23 @@ pub fn hitbox_state_handler (
                 collision_box.lifespan.reset()
             }
 
+            if movement_state.is_crouching && collision_box.box_type == BoxType::HurtCrouching && !collision_box.active {
+                collision_box.active = true;
+                collision_box.lifespan.reset()
+            }
+
+            if attack_state.is_attacking {
+                if collision_box.box_type == BoxType::LightHit && !collision_box.active {
+                    collision_box.active = true;
+                    collision_box.lifespan.reset();
+                }
+            }
 
             collision_box.lifespan.tick(time.delta());
 
 
             if collision_box.lifespan.finished() {
                 collision_box.active = false;
-                println!("kjgndjkfgndkgnkfnjbk")
             }
         }
 
@@ -1412,7 +1493,8 @@ pub fn hitbox_state_handler (
 // Next is to handle the different types of collisions (most likely Some(Collision) and None, not necessarily the collision sides)
 pub fn collision_handler(
     //
-    mut player_query: Query<(&mut CollisionInfo, &AttackState, &MovementState, &PlayerNumber, &Transform), With<Player>>
+    mut player_query_one: Query<(&mut CollisionInfo, &AttackState, &MovementState, &PlayerNumber, &Transform), (With<PlayerOne>, Without<PlayerTwo>)>,
+    mut player_query_two: Query<(&mut CollisionInfo, &AttackState, &MovementState, &PlayerNumber, &Transform), (With<PlayerTwo>, Without<PlayerOne>)>
     // mut collision_events: EventWriter<CollisionEvent>, <-- have this here??
 ) {
     //
@@ -1425,13 +1507,98 @@ pub fn collision_handler(
     let mut _player_two_collision_box_translation = Vec3::new(0.0, 0.0, 0.0);
     let mut _player_two_collision_box_size = Vec2::new(0.0, 0.0);
 
-    for (mut collision_info, attack_state, movement_state, player_number, player_transform) in player_query.iter_mut() {
-        if player_number.player_number == 1 {
-            _player_one = 1;
-        }
-        if player_number.player_number == 2 {
-            _player_two = 2;
-        }
+
+    // need to define variables for player 1's and 2's collision infos
+    //let mut _player_one_collision_box
+    //let mut _player_one_collision_box: Vec<CollisionBox> = Vec::new();
+    //let mut _player_two_collision_box: Vec<CollisionBox> = Vec::new();
+
+    /* 
+    let mut dummy_player_one_box_vector: Vec<CollisionBox> = Vec::new();
+    let mut dummy_player_one_collision_box: CollisionBox = CollisionBox {
+        box_type: BoxType::Hurt,
+        hurt_hit: HurtHit::Hurtbox,
+        offset: Vec2::new(0.0, 0.0),
+        size: Vec2::new(0.0, 0.0),
+        active: false,
+        lifespan: Timer::from_seconds(0.0, TimerMode::Once) };
+    //_player_one_box_vector.push(_player_one_collision_box);
+
+
+    let mut dummy_player_two_box_vector: Vec<CollisionBox> = Vec::new();
+    //let mut _player_two_collision_box: CollisionBox = CollisionBox {
+    //    box_type: BoxType::Hurt,
+    //    hurt_hit: HurtHit::Hurtbox,
+    //    offset: Vec2::new(0.0, 0.0),
+    //    size: Vec2::new(0.0, 0.0),
+    //    active: false,
+    //    lifespan: Timer::from_seconds(0.0, TimerMode::Once) };
+    //_player_two_box_vector.push(_player_two_collision_box);
+    */
+
+
+    for (collision_info_one, attack_state_one, movement_state_one, player_number_one, player_transform_one) in player_query_one.iter_mut() {
+        // is this assignment necessary?
+
+            
+            // loop through player 1's collision info
+            for collision_box_one in collision_info_one.collision_vector.iter() {
+                // push collision_box into the dummy variable for player one
+
+                // if player 1's collision box is active
+                if collision_box_one.active {
+                    // loop through player 2's collision info
+                    for (collision_info_two, attack_state_two, movement_state_two, player_number_two, player_transform_two) in player_query_two.iter_mut() {
+                        for collision_box_two in collision_info_two.collision_vector.iter() {
+                            if collision_box_two.active {
+                                // do the collision check
+                                let potential_collision = collide(
+                                    player_transform_one.translation + collision_box_one.offset,
+                                    collision_box_one.size,
+                                    player_transform_two.translation + collision_box_two.offset,
+                                    collision_box_two.size,
+                                );
+                                if let Some(potential_collision) = potential_collision {
+                                    
+                                    if collision_box_one.hurt_hit == HurtHit::Hurtbox && collision_box_two.hurt_hit == HurtHit::Hurtbox {
+                                        // Send push event
+                                        println!("Pushing");
+                                    }
+
+                                    if collision_box_one.hurt_hit == HurtHit::Hurtbox && collision_box_two.hurt_hit == HurtHit::HitBox {
+                                        // Send p1 hurt event
+                                        println!("Player 1 got hit by player 2");
+                                    }
+
+                                    if collision_box_one.hurt_hit == HurtHit::HitBox && collision_box_two.hurt_hit == HurtHit::Hurtbox {
+                                        // Send p1 hit event / p2 hurt event ?
+                                        println!("Player 1 hit player 2");
+                                    }
+
+                                    if collision_box_one.hurt_hit == HurtHit::HitBox && collision_box_two.hurt_hit == HurtHit::HitBox {
+                                        // Send clash event
+                                        println!("Player 1 clashed with player 2");
+                                    }
+
+
+                                    match potential_collision {
+                                        Collision::Left => println!("Player 1 collided with Player 2 on the left"),
+                                        Collision::Right => println!("Player 1 collided with Player 2 on the right"),
+                                        Collision::Top => println!("Player 1 collided with Player 2 on the top"),
+                                        Collision::Bottom => println!("Player 1 collided with Player 2 on the bottom"),
+                                        Collision::Inside => println!("Collision on the inside")
+                                    }
+                                }
+
+                            }
+                        }
+                    }
+                }
+            }
+
+        
+
+        /* 
         for collision_box in collision_info.collision_vector.iter_mut() {
             if collision_box.active {
                 if player_number.player_number == 1 {
@@ -1451,14 +1618,14 @@ pub fn collision_handler(
             _player_two_collision_box_size,
         );
         println!("what is this: --> {:?}", potential_collision.unwrap());
-
+        
         }
+        */
     }
 }
 
 
 // Put collision state handler system here?
-// Add commands here, in order to despawn hitboxes from the current action
 pub fn player_reset_to_neutral(
     mut player_query: Query<(&mut AnimationIndices, &mut TextureAtlasSprite, &PlayerInput, &mut AttackState, &mut MovementState, &SpriteSheetIndeces), With<Player>>,
     //attack_state: Res<State<AttackState>>,
@@ -1567,6 +1734,7 @@ pub fn _debug_collision_check(
         if player_number.player_number == 1 {
             for collision_box in &collision_info.collision_vector {
                 println!("box type               : {:?}", collision_box.box_type);
+                println!("hurt or hit box        : {:?}", collision_box.hurt_hit);
                 println!("collision box transform: {:?}", collision_box.offset);
                 println!("collision box size     : {:?}", collision_box.size);
                 println!("collision box active   : {:?}", collision_box.active);

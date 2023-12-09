@@ -12,7 +12,7 @@ use bevy::{prelude::*, utils::HashMap};
 pub struct CollisionBox {
     pub box_type: BoxType,
     pub hurt_hit: HurtHit,
-    pub offset: Vec2,
+    pub offset: Vec3,
     pub size: Vec2,
     pub active: bool,
     pub lifespan: Timer,
@@ -25,6 +25,8 @@ pub struct CollisionBox {
 // Define Player component
 #[derive(Component)]
 pub struct Player {}
+
+
 
 
 #[derive(Component)]
@@ -296,4 +298,15 @@ pub struct BlockState {
 pub struct PlayerNumber {
     pub player_number: i32,
 }
+
+#[derive(Component)]
+pub struct Health {
+    pub player_health: f32,
+}
+
+#[derive(Component)]
+pub struct PlayerOne;
+
+#[derive(Component)]
+pub struct PlayerTwo;
 

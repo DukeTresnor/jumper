@@ -6,11 +6,12 @@ pub mod components;
 mod systems;
 
 
-
 use systems::*;
 
 use crate::AppState;
 use crate::game::SimulationState;
+
+mod marisa_constants;
 
 
 pub const PLAYER_SPEED_VERTICAL: f32 = 400.0;
@@ -47,7 +48,7 @@ impl Plugin for PlayerPlugin {
                     //loop_walking_animation,
                     //_debug_player_state,
                     //_debug_player_velocity,
-                    _debug_collision_check,
+                    //_debug_collision_check,
                     
                 )
                 .run_if(in_state(AppState::Game))
