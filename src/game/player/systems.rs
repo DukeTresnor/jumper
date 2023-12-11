@@ -102,25 +102,54 @@ pub fn spawn_player(
     let hurt_offset = MARISA_HURT_OFFSET;
     let hurt_size = MARISA_HURT_SIZE;
     let hurt_duration = MARISA_HURT_DURATION;
+    let hurt_startup = MARISA_HURT_STARTUP;
+    let hurt_active = MARISA_HURT_ACTIVE;
+    let hurt_cooldown = MARISA_HURT_COOLDOWN;
+    /*
+    pub const MARISA_HURT_STARTUP: f32 = 0.5;
+pub const MARISA_HURT_ACTIVE: f32 = 0.5;
+pub const MARISA_HURT_COOLDOWN: f32 = 0.5;
+     */
 
     
     let hurt_crouching_offset = MARISA_HURT_CROUCHING_OFFSET;
     let hurt_crouching_size = MARISA_HURT_CROUCHING_SIZE;
     let hurt_crouching_duration = MARISA_HURT_CROUCHING_DURATION;
+    let hurt_crouching_startup = MARISA_HURT_CROUCHING_STARTUP;
+    let hurt_crouching_active = MARISA_HURT_CROUCHING_ACTIVE;
+    let hurt_crouching_cooldown = MARISA_HURT_CROUCHING_COOLDOWN;
     
 
     let light_hurt_offset = MARISA_LIGHT_HURT_OFFSET;
     let light_hurt_size = MARISA_LIGHT_HURT_SIZE;
     let light_hurt_duration = MARISA_LIGHT_HURT_DURATION;
+    let light_hurt_startup = MARISA_LIGHT_HURT_STARTUP;
+    let light_hurt_active = MARISA_LIGHT_HURT_ACTIVE;
+    let light_hurt_cooldown = MARISA_LIGHT_HURT_COOLDOWN;
 
     let light_hit_offset = MARISA_LIGHT_HIT_OFFSET;
     let light_hit_size = MARISA_LIGHT_HIT_SIZE;
     let light_hit_startup = MARISA_LIGHT_HIT_STARTUP;
     let light_hit_active = MARISA_LIGHT_HIT_ACTIVE;
     let light_hit_cooldown = MARISA_LIGHT_HIT_COOLDOWN;
+
+
+    let light_crouching_hurt_offset = MARISA_LIGHT_CROUCHING_HURT_OFFSET;
+    let light_crouching_hurt_size = MARISA_LIGHT_CROUCHING_HURT_SIZE;
+    let light_crouching_hurt_duration = MARISA_LIGHT_CROUCHING_HURT_DURATION;
+    let light_crouching_hurt_startup = MARISA_LIGHT_CROUCHING_HURT_STARTUP;
+    let light_crouching_hurt_active = MARISA_LIGHT_CROUCHING_HURT_ACTIVE;
+    let light_crouching_hurt_cooldown = MARISA_LIGHT_CROUCHING_HURT_COOLDOWN;
+
+    let light_crouching_hit_offset = MARISA_LIGHT_CROUCHING_HIT_OFFSET;
+    let light_crouching_hit_size = MARISA_LIGHT_CROUCHING_HIT_SIZE;
+    let light_crouching_hit_startup = MARISA_LIGHT_CROUCHING_HIT_STARTUP;
+    let light_crouching_hit_active = MARISA_LIGHT_CROUCHING_HIT_ACTIVE;
+    let light_crouching_hit_cooldown = MARISA_LIGHT_CROUCHING_HIT_COOLDOWN;
+
     // Variables determined from character constants
 
-    
+    // light_hit wants to be active only during its active frames, and only after its startup frames
 
 
     // -- temp section -- //
@@ -134,6 +163,7 @@ pub fn spawn_player(
             size: hurt_size,
             active: false,
             lifespan: Timer::from_seconds(hurt_duration, TimerMode::Repeating),
+            startup_active_cooldown: [hurt_startup, hurt_active, hurt_cooldown],
         }
         
     );
@@ -146,6 +176,7 @@ pub fn spawn_player(
             size: hurt_crouching_size,
             active: false,
             lifespan: Timer::from_seconds(hurt_crouching_duration, TimerMode::Repeating),
+            startup_active_cooldown: [hurt_crouching_startup, hurt_crouching_active, hurt_crouching_cooldown],
         }
     );
     
@@ -159,6 +190,7 @@ pub fn spawn_player(
             size: light_hurt_size,
             active: false,
             lifespan: Timer::from_seconds(light_hurt_duration, TimerMode::Once),
+            startup_active_cooldown: [light_hurt_startup, light_hurt_active, light_hurt_cooldown],
         }
     );
 
@@ -170,6 +202,7 @@ pub fn spawn_player(
             size: light_hit_size,
             active: false,
             lifespan: Timer::from_seconds(light_hit_active, TimerMode::Once),
+            startup_active_cooldown: [light_hit_startup, light_hit_active, light_hit_cooldown],
         }
     );
 
@@ -185,6 +218,7 @@ pub fn spawn_player(
             size: hurt_size,
             active: false,
             lifespan: Timer::from_seconds(hurt_duration, TimerMode::Repeating),
+            startup_active_cooldown: [hurt_startup, hurt_active, hurt_cooldown], 
         }
          
     );
@@ -1440,12 +1474,12 @@ pub fn player_ground_attack(
 pub fn hitbox_state_handler (
     //
     time: Res<Time>,
-    mut player_query: Query<(&mut CollisionInfo, &AttackState, &MovementState, &PlayerNumber), With<Player>>
+    mut player_query: Query<(&mut CollisionInfo, &AttackState, &MovementState, &PlayerInput, &PlayerNumber), With<Player>>
 ) {
     //
     let mut _player_one: i32;
     let mut _player_two: i32;
-    for (mut collision_info, attack_state, movement_state, player_number) in player_query.iter_mut() {
+    for (mut collision_info, attack_state, movement_state, player_input, player_number) in player_query.iter_mut() {
         //
         if player_number.player_number == 1 {
             _player_one = 1;
@@ -1471,11 +1505,28 @@ pub fn hitbox_state_handler (
                 collision_box.lifespan.reset()
             }
 
+            // this might need to be if _not_ attack_state.is_attacking
             if attack_state.is_attacking {
-                if collision_box.box_type == BoxType::LightHit && !collision_box.active {
+                // if light hit
+                if player_input.light && !player_input.down && collision_box.box_type == BoxType::LightHit && !collision_box.active {
+                    collision_box.active = true;
+                    collision_box.lifespan.reset();
+                    println!("did this happen? -----------------------------------------------------------");
+                }
+
+                // if light hurt
+
+                // if light crouching hit
+                if player_input.light && player_input.down && collision_box.box_type == BoxType::LightHitCrouching && !collision_box.active {
                     collision_box.active = true;
                     collision_box.lifespan.reset();
                 }
+
+                // if light crouching hurt
+
+
+
+
             }
 
             collision_box.lifespan.tick(time.delta());

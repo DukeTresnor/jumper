@@ -16,6 +16,7 @@ pub struct CollisionBox {
     pub size: Vec2,
     pub active: bool,
     pub lifespan: Timer,
+    pub startup_active_cooldown: [f32; 3],
 }
 
 

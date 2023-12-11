@@ -8,15 +8,24 @@ pub const MARISA_HEALTH: f32 = 100.0;
 pub const MARISA_HURT_OFFSET: Vec3 = Vec3::new(0.0, 0.0, 0.0);
 pub const MARISA_HURT_SIZE: Vec2 = Vec2::new(32.0, 96.0);                               // 2 * 16 , 6 * 16
 pub const MARISA_HURT_DURATION: f32 = 0.15;
+pub const MARISA_HURT_STARTUP: f32 = 0.5;
+pub const MARISA_HURT_ACTIVE: f32 = 0.5;
+pub const MARISA_HURT_COOLDOWN: f32 = 0.5;
 
 pub const MARISA_HURT_CROUCHING_OFFSET: Vec3 = Vec3::new(0.0, 0.0, 0.0);
 pub const MARISA_HURT_CROUCHING_SIZE: Vec2 = Vec2::new(48.0, 80.0);                     // 3 * 16 , 5 * 16
 pub const MARISA_HURT_CROUCHING_DURATION: f32 = 0.167;
+pub const MARISA_HURT_CROUCHING_STARTUP: f32 = 0.5;
+pub const MARISA_HURT_CROUCHING_ACTIVE: f32 = 0.5;
+pub const MARISA_HURT_CROUCHING_COOLDOWN: f32 = 0.67;
 
 // Light
 pub const MARISA_LIGHT_HURT_OFFSET: Vec3 = Vec3::new(24.0, 5.0, 0.0);                 // 1.5 * 16 , 5 
 pub const MARISA_LIGHT_HURT_SIZE: Vec2 = Vec2::new(48.0, 10.0);                         // 3 * 16, 10
 pub const MARISA_LIGHT_HURT_DURATION: f32 = 0.1;                                             // 6 frames
+pub const MARISA_LIGHT_HURT_STARTUP: f32 = 0.03;
+pub const MARISA_LIGHT_HURT_ACTIVE: f32 = 0.03;
+pub const MARISA_LIGHT_HURT_COOLDOWN: f32 = 0.04;
 
 pub const MARISA_LIGHT_HIT_OFFSET: Vec3 = Vec3::new(20.0, 5.0, 0.0);                 // 1.5 * 16 , 5
 pub const MARISA_LIGHT_HIT_SIZE: Vec2 = Vec2::new(40.0, 10.0);                          // 2.5 * 16, 10
@@ -26,6 +35,26 @@ pub const MARISA_LIGHT_HIT_COOLDOWN: f32 = 0.02;                                
 
 pub const MARISA_LIGHT_HIT_DAMAGE: f32 = 5.0;
 // Light
+
+
+// Light Crouching
+pub const MARISA_LIGHT_CROUCHING_HURT_OFFSET: Vec3 = Vec3::new(32.0, 8.0, 0.0);                 // 1.5 * 16 , 5 
+pub const MARISA_LIGHT_CROUCHING_HURT_SIZE: Vec2 = Vec2::new(32.0, 32.0);                         // 3 * 16, 10
+pub const MARISA_LIGHT_CROUCHING_HURT_DURATION: f32 = 0.13;                                             // 6 frames
+pub const MARISA_LIGHT_CROUCHING_HURT_STARTUP: f32 = 0.03;                                              // 2 frames
+pub const MARISA_LIGHT_CROUCHING_HURT_ACTIVE: f32 = 0.03;                                             // 3 frames
+pub const MARISA_LIGHT_CROUCHING_HURT_COOLDOWN: f32 = 0.07;         
+
+
+pub const MARISA_LIGHT_CROUCHING_HIT_OFFSET: Vec3 = Vec3::new(32.0, 8.0, 0.0);                 // 1.5 * 16 , 5
+pub const MARISA_LIGHT_CROUCHING_HIT_SIZE: Vec2 = Vec2::new(32.0, 32.0);                          // 2.5 * 16, 10
+pub const MARISA_LIGHT_CROUCHING_HIT_STARTUP: f32 = 0.03;                                              // 2 frames
+pub const MARISA_LIGHT_CROUCHING_HIT_ACTIVE: f32 = 0.03;                                             // 3 frames
+pub const MARISA_LIGHT_CROUCHING_HIT_COOLDOWN: f32 = 0.07;                                                 // 1 frame
+
+pub const MARISA_LIGHT_CROUCHING_HIT_DAMAGE: f32 = 5.0;
+// Light Crouching
+
 
 
 
