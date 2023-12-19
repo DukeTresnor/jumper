@@ -62,6 +62,9 @@ pub const MARISA_LIGHT_CROUCHING_HIT_DAMAGE: f32 = 5.0;
 pub const MARISA_MEDIUM_HURT_OFFSET: Vec3 = Vec3::new(32.0, 0.0, 0.0);                 // 1.5 * 16 , 5 
 pub const MARISA_MEDIUM_HURT_SIZE: Vec2 = Vec2::new(64.0, 96.0);                         // 3 * 16, 10
 pub const MARISA_MEDIUM_HURT_DURATION: f32 = 0.23;                                             // 14 frames
+pub const MARISA_MEDIUM_HURT_STARTUP: f32 = 0.07;
+pub const MARISA_MEDIUM_HURT_ACTIVE: f32 = 0.05;
+pub const MARISA_MEDIUM_HURT_COOLDOWN: f32 = 0.11;
 
 pub const MARISA_MEDIUM_HIT_OFFSET: Vec3 = Vec3::new(32.0, 0.0, 0.0);                 // 1.5 * 16 , 5
 pub const MARISA_MEDIUM_HIT_SIZE: Vec2 = Vec2::new(64.0, 96.0);                          // 2.5 * 16, 10

@@ -1493,6 +1493,7 @@ pub fn hitbox_state_handler (
         for collision_box in collision_info.collision_vector.iter_mut() {
 
             // If the player is idle or walking, and if the collision box is Hurt and it's not active
+            //    when you're jumping i think you can still just use the hurt box for being idle
             if !movement_state.is_crouching && !movement_state.is_dashing && collision_box.box_type == BoxType::Hurt && !collision_box.active{
                 //
 
@@ -1611,6 +1612,7 @@ pub fn collision_handler(
                                 );
                                 if let Some(potential_collision) = potential_collision {
                                     
+                                    // Send data along with a specific event type
                                     if collision_box_one.hurt_hit == HurtHit::Hurtbox && collision_box_two.hurt_hit == HurtHit::Hurtbox {
                                         // Send push event
                                         println!("Pushing");
