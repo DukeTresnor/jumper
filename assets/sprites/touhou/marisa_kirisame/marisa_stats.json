@@ -1,0 +1,639 @@
+{
+    "Health": 100,
+    "IdleHurtBox": {
+        "BoxType": "Hurt",
+        "IdleHurtOffset": [0.0, 0.0, 0.0],
+        "IdleHurtSize": [32.0, 96.0],
+        "IdleHurtFrameData": {
+            "Duration": 10
+        }
+    },
+    "IdleCrouchingHurtBox": {
+        "BoxType": "HurtCrouching",
+        "IdleHurtOffset": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "IdleHurtSize": [
+            48.0,
+            80.0
+        ],
+        "IdleHurtFrameData": {
+            "Duration": 11
+        }
+    },
+    "LightHurtBox": {
+        "BoxType": "LightHurt",
+        "LightHurtBoxOffset": [
+            24.0,
+            5.0,
+            0.0
+        ],
+        "LightHurtBoxSize": [
+            48.0,
+            10.0
+        ],
+        "LightHurtBoxFrameData": {
+            "Duration": 7
+        }
+    },
+    "LightHitBox": {
+        "Damage": 5.0,
+        "BoxType": "LightHit",
+        "BlockType": "Mid",
+        "LightHitBoxOffset": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "LightHitBoxSize": [
+            48.0,
+            80.0
+        ],
+        "LightHitBoxFrameData": {
+            "Startup": 2,
+            "Active": 3,
+            "Cooldown": 2
+        }
+    },
+    "LightHurtCrouching": {
+        "BoxType": "LightHurtCrouching",
+        "LightHurtCrouchingOffset": [
+            24.0,
+            5.0,
+            0.0
+        ],
+        "LightHurtCrouchingSize": [
+            48.0,
+            10.0
+        ],
+        "LightHurtCrouchingFrameData": {
+            "Duration": 8
+        }
+    },
+    "LightHitCrouching": {
+        "Damage": 5.0,
+        "BoxType": "LightHitCrouching",
+        "BlockType": "Mid",
+        "LightHitCrouchingOffset": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "LightHitCrouchingSize": [
+            48.0,
+            80.0
+        ],
+        "LightHitCrouchingFrameData": {
+            "Startup": 2,
+            "Active": 3,
+            "Cooldown": 2
+        }
+    },
+    "LightHurtJumping": {
+        "BoxType": "LightHurtJumping",
+        "LightHurtJumpingOffset": [
+            24.0,
+            5.0,
+            0.0
+        ],
+        "LightHurtJumpingSize": [
+            48.0,
+            10.0
+        ],
+        "LightHurtJumpingFrameData": {
+            "Duration": 10
+        }
+    },
+    "LightHitJumping": {
+        "Damage": 5.0,
+        "BoxType": "LightHitJumping",
+        "BlockType": "High",
+        "LightHitJumpingOffset": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "LightHitJumpingSize": [
+            48.0,
+            80.0
+        ],
+        "LightHitJumpingFrameData": {
+            "Startup": 5,
+            "Active": 2,
+            "Cooldown": 3
+        }
+    },
+    "MediumHurt": {
+        "BoxType": "MediumHurt",
+        "MediumHurtOffset": [
+            24.0,
+            5.0,
+            0.0
+        ],
+        "MediumHurtSize": [
+            48.0,
+            10.0
+        ],
+        "MediumHurtFrameData": {
+            "Duration": 14
+        }
+    },
+    "MediumHit": {
+        "Damage": 10.0,
+        "BoxType": "MediumHit",
+        "BlockType": "Mid",
+        "MediumHitOffset": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "MediumHitSize": [
+            48.0,
+            80.0
+        ],
+        "MediumHitFrameData": {
+            "Startup": 4,
+            "Active": 2,
+            "Cooldown": 8
+        }
+    },
+    "MediumHurtCrouching": {
+        "BoxType": "MediumHurtCrouching",
+        "MediumHurtCrouchingOffset": [
+            24.0,
+            5.0,
+            0.0
+        ],
+        "MediumHurtCrouchingSize": [
+            48.0,
+            10.0
+        ],
+        "MediumHurtCrouchingFrameData": {
+            "Duration": 9
+        }
+    },
+    "MediumHitCrouching": {
+        "Damage": 10.0,
+        "BoxType": "MediumHitCrouching",
+        "BlockType": "Low",
+        "MediumHitCrouchingOffset": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "MediumHitCrouchingSize": [
+            48.0,
+            80.0
+        ],
+        "MediumHitCrouchingFrameData": {
+            "Startup": 3,
+            "Active": 2,
+            "Cooldown": 4
+        }
+    },
+    "MediumHurtJumping": {
+        "BoxType": "MediumHurtJumping",
+        "MediumHurtJumpingOffset": [
+            24.0,
+            5.0,
+            0.0
+        ],
+        "MediumHurtJumpingSize": [
+            48.0,
+            10.0
+        ],
+        "MediumHurtJumpingFrameData": {
+            "Duration": 7
+        }
+    },
+    "MediumHitJumping": {
+        "Damage": 10.0,
+        "BoxType": "MediumHitJumping",
+        "BlockType": "High",
+        "MediumHitJumpingOffset": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "MediumHitJumpingSize": [
+            48.0,
+            80.0
+        ],
+        "MediumHitJumpingFrameData": {
+            "Startup": 2,
+            "Active": 2,
+            "Cooldown": 3
+        }
+    },
+    "HeavyHurt": {
+        "BoxType": "HeavyHurt",
+        "HeavyHurtOffset": [
+            24.0,
+            5.0,
+            0.0
+        ],
+        "HeavyHurtSize": [
+            48.0,
+            10.0
+        ],
+        "HeavyHurtFrameData": {
+            "Duration": 10
+        }
+    },
+    "HeavyHit": {
+        "Damage": 15.0,
+        "BoxType": "HeavyHit",
+        "BlockType": "Mid",
+        "HeavyHitOffset": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "HeavyHitSize": [
+            48.0,
+            80.0
+        ],
+        "HeavyHitFramData": {
+            "Startup": 4,
+            "Active": 2,
+            "Cooldown": 4
+        }
+    },
+    "HeavyHurtCrouching": {
+        "BoxType": "HeavyHurtCrouching",
+        "HeavyHurtCrouchingOffset": [
+            24.0,
+            5.0,
+            0.0
+        ],
+        "HeavyHurtCrouchingSize": [
+            48.0,
+            10.0
+        ],
+        "HeavyHurtCrouchingFrameData": {
+            "Duration": 11
+        }
+    },
+    "HeavyHitCrouching": {
+        "Damage": 15.0,
+        "BoxType": "HeavyHitCrouching",
+        "BlockType": "Mid",
+        "HeavyHitCrouchingOffset": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "HeavyHitCrouchingSize": [
+            48.0,
+            80.0
+        ],
+        "HeavyHitCrouchingFramData": {
+            "Startup": 4,
+            "Active": 2,
+            "Cooldown": 5
+        }
+    },
+    "HeavyHurtJunmping": {
+        "BoxType": "HeavyHurtJumping",
+        "HeavyHurtJumpingOffset": [
+            24.0,
+            5.0,
+            0.0
+        ],
+        "HeavyHurtJumpingSize": [
+            48.0,
+            10.0
+        ],
+        "HeavyHurtJumpingFrameData": {
+            "Duration": 0
+        }
+    },
+    "HeavyHitJumping": {
+        "Damage": 15.0,
+        "BoxType": "HeavyHitJumping",
+        "BlockType": "High",
+        "HeavyHitJumpingOffset": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "HeavyHitJumpingSize": [
+            48.0,
+            80.0
+        ],
+        "HeavyHitJumpingFramData": {
+            "Startup": 0,
+            "Active": 0,
+            "Cooldown": 0
+        }
+    },
+    "UniqueHurt": {
+        "BoxType": "UniqueHurt",
+        "UniqueHurtOffset": [
+            24.0,
+            5.0,
+            0.0
+        ],
+        "UniqueHurtSize": [
+            48.0,
+            10.0
+        ],
+        "UniqueHurtFrameData": {
+            "Duration": 10
+        }
+    },
+    "UniqueHit": {
+        "Damage": 20.0,
+        "BoxType": "UniqueHit",
+        "BlockType": "Mid",
+        "UniqueHitOffset": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "UniqueHitSize": [
+            48.0,
+            80.0
+        ],
+        "UniqueHitFramData": {
+            "Startup": 4,
+            "Active": 3,
+            "Cooldown": 3
+        }
+    },
+    "UniqueHurtCrouching": {
+        "BoxType": "UniqueHurtCrouching",
+        "UniqueHurtCrouchingOffset": [
+            24.0,
+            5.0,
+            0.0
+        ],
+        "UniqueHurtCrouchingSize": [
+            48.0,
+            10.0
+        ],
+        "UniqueHurtCrouchingFrameData": {
+            "Duration": 20
+        }
+    },
+    "UniqueHitCrouching": {
+        "Damage": 20.0,
+        "BoxType": "UniqueHitCrouching",
+        "BlockType": "Low",
+        "UniqueHitCrouchingOffset": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "UniqueHitCrouchingSize": [
+            48.0,
+            80.0
+        ],
+        "UniqueHitCrouchingFrameData": {
+            "Startup": 8,
+            "Active": 3,
+            "Cooldown": 9
+        }
+    },
+    "UniqueHurtJumping": {
+        "BoxType": "UniqueHurtJumping",
+        "UniqueHurtJumpingOffset": [
+            24.0,
+            5.0,
+            0.0
+        ],
+        "UniqueHurtJumpingSize": [
+            48.0,
+            10.0
+        ],
+        "UniqueHurtJumpingFrameData": {
+            "Duration": 10
+        }
+    },
+    "UniqueHitJumping": {
+        "Damage": 20.0,
+        "BoxType": "UniqueHitJumping",
+        "BlockType": "High",
+        "UniqueHitJumpingOffset": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "UniqueHitJumpingSize": [
+            48.0,
+            80.0
+        ],
+        "UniqueHitJumpingFrameData": {
+            "Startup": 6,
+            "Active": 2,
+            "Cooldown": 2
+        }
+    },
+    "UniqueHurtForward": {
+        "BoxType": "UniqueHurtForward",
+        "UniqueHurtForwardOffset": [
+            24.0,
+            5.0,
+            0.0
+        ],
+        "UniqueHurtForwardSize": [
+            48.0,
+            10.0
+        ],
+        "UniqueHurtForwardFrameData": {
+            "Duration": 10
+        }
+    },
+    "UniqueHitForward": {
+        "Damage": 20.0,
+        "BoxType": "UniqueHitForward",
+        "BlockType": "Mid",
+        "UniqueHitForwardOffset": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "UniqueHitForwardSize": [
+            48.0,
+            80.0
+        ],
+        "UniqueHitForwardFrameData": {
+            "Startup": 5,
+            "Active": 3,
+            "Cooldown": 2
+        }
+    },
+    "SpecialHurt": {
+        "BoxType": "SpecialHurt",
+        "SpecialHurtOffset": [
+            24.0,
+            5.0,
+            0.0
+        ],
+        "SpecialHurtSize": [
+            48.0,
+            10.0
+        ],
+        "SpecialHurtFrameData": {
+            "Duration": 17
+        }
+    },
+    "SpecialHit": {
+        "Damage": 25.0,
+        "BoxType": "SpecialHit",
+        "BlockType": "Mid",
+        "SpecialHitOffset": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "SpecialHitSize": [
+            48.0,
+            80.0
+        ],
+        "SpecialHitFrameData": {
+            "Startup": 5,
+            "Active": 4,
+            "Cooldown": 8
+        }
+    },
+    "SpecialHurtCrouching": {
+        "BoxType": "SpecialHurtCrouching",
+        "SpecialHurtCrouchingOffset": [
+            24.0,
+            5.0,
+            0.0
+        ],
+        "SpecialHurtCrouchingSize": [
+            48.0,
+            10.0
+        ],
+        "SpecialHurtCrouchingFrameData": {
+            "Duration": 9
+        }
+    },
+    "SpecialHitCrouching": {
+        "Damage": 25.0,
+        "BoxType": "SpecialHitCrouching",
+        "BlockType": "Mid",
+        "SpecialHitCrouchingOffset": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "SpecialHitCrouchingSize": [
+            48.0,
+            80.0
+        ],
+        "SpecialHitCrouchingFrameData": {
+            "Startup": 5,
+            "Active": 2,
+            "Cooldown": 2
+        }
+    },
+    "SpecialHurtJumping": {
+        "BoxType": "SpecialHurtJumping",
+        "SpecialHurtJumpingOffset": [
+            24.0,
+            5.0,
+            0.0
+        ],
+        "SpecialHurtJumpingSize": [
+            48.0,
+            10.0
+        ],
+        "SpecialHurtJumpingFrameData": {
+            "Duration": 10
+        }
+    },
+    "SpecialHitJumping": {
+        "Damage": 25.0,
+        "BoxType": "SpecialHitJumping",
+        "BlockType": "Mid",
+        "SpecialHitJumpingOffset": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "SpecialHitJumpingSize": [
+            48.0,
+            80.0
+        ],
+        "SpecialHitJumpingFrameData": {
+            "Startup": 6,
+            "Active": 2,
+            "Cooldown": 2
+        }
+    },
+    "SpecialHurtForward": {
+        "BoxType": "SpecialHurtForward",
+        "SpecialHurtForwardOffset": [
+            24.0,
+            5.0,
+            0.0
+        ],
+        "SpecialHurtForwardSize": [
+            48.0,
+            10.0
+        ],
+        "SpecialHurtForwardFrameData": {
+            "Duration": 11
+        }
+    },
+    "SpecialHitForward": {
+        "Damage": 25.0,
+        "BoxType": "SpecialHitForward",
+        "BlockType": "Mid",
+        "SpecialHitForwardOffset": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "SpecialHitForwardSize": [
+            48.0,
+            80.0
+        ],
+        "SpecialHitForwardFrameData": {
+            "Startup": 3,
+            "Active": 3,
+            "Cooldown": 5
+        }
+    },
+    "SpeciallHurtBackward": {
+        "BoxType": "SpeciallHurtBackward",
+        "SpeciallHurtBackwardOffset": [
+            24.0,
+            5.0,
+            0.0
+        ],
+        "SpeciallHurtBackwardSize": [
+            48.0,
+            10.0
+        ],
+        "SpeciallHurtBackwardFrameData": {
+            "Duration": 22
+        }
+    },
+    "SpecialHitBackward": {
+        "Damage": 25.0,
+        "BoxType": "SpecialHitBackward",
+        "BlockType": "Mid",
+        "SpecialHitBackwardOffset": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "SpecialHitBackwardSize": [
+            48.0,
+            80.0
+        ],
+        "SpecialHitBackwardFrameData": {
+            "Startup": 7,
+            "Active": 11,
+            "Cooldown": 4
+        }
+    }
+
+}

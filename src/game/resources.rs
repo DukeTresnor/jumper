@@ -33,3 +33,17 @@ impl Default for InputBufferTimer {
         }
     }
 }
+
+
+#[derive(Resource)]
+pub struct AdvanceOneFrameMode {
+    pub should_advance_one_frame: bool,
+}
+
+impl  Default for AdvanceOneFrameMode {
+    fn default() -> AdvanceOneFrameMode {
+        AdvanceOneFrameMode {
+            should_advance_one_frame: false
+        }
+    }
+}

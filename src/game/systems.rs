@@ -6,6 +6,7 @@
 use::bevy::prelude::*;
 use bevy::render::camera;
 use bevy::window::PrimaryWindow;
+use bevy::utils::Duration;
 //use bevy::window::PrimaryWindow;
 
 
@@ -16,6 +17,7 @@ use crate::game::components::*;
 //use crate::game::resources::*;
 
 use crate::game::TILE_SIZE;
+use crate::game::OVERALL_FRAME_RATE;
 
 use crate::components::*;
 
@@ -49,6 +51,36 @@ pub fn toggle_simulation_state(
         }
     }
 }
+
+// Systems that deal with the debugger can go into the debugger_systems module
+// Right now this transition system is in here because it's similar to other systems that
+//   deal with state changing within the game
+pub fn transition_to_debugger_state(
+    //
+    keyboard_input: Res<Input<KeyCode>>,
+    simulation_state: Res<State<SimulationState>>,
+    mut next_simulation_state: ResMut<NextState<SimulationState>>,
+) {
+    //
+    if keyboard_input.just_pressed(KeyCode::Q) {
+        if simulation_state.get() != &SimulationState::Debugger {
+            next_simulation_state.set(SimulationState::Debugger);
+            println!("Entering Debugger");
+        }
+
+    }
+
+    // Temporary
+    if keyboard_input.just_pressed(KeyCode::Q) {
+        if simulation_state.get() == &SimulationState::Debugger {
+            next_simulation_state.set(SimulationState::Running);
+            println!("Exiting Debugger and entering Running");
+        }
+    }
+}
+
+
+
 
 // If pause_simulation is added to the run schedule, we need to shift our Simulation state to
 //   paused. Therefore, this system needs access to the NextState resource
@@ -174,13 +206,19 @@ pub fn animate_sprite(
 ) {
     for (animation_indices, mut timer, mut sprite_sheet) in animation_query.iter_mut() {
         timer.tick(time.delta());
+        //timer.tick(Duration::from_secs(OVERALL_FRAME_RATE as u64));
+        //println!("{}", time.delta().as_secs_f64());
         // If the timer is finished, force the sprite sheet to be at
         //   the next sprite in the sheet. If you are at the last sprite in the
         //   sheet, go to the first sprite so it loops
+
+        //println!("{:?}", time.delta());
+
         if timer.just_finished() {
             sprite_sheet.index = if sprite_sheet.index == animation_indices.last {
                 animation_indices.first
             } else {
+                println!("Sprite Sheet index: {}", sprite_sheet.index);
                 sprite_sheet.index + 1
             }
         }
@@ -248,3 +286,7 @@ pub fn camera_zoom(
 
 
 // Camera Zooming Systems //
+
+
+
+

@@ -14,7 +14,7 @@ mod components;
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
-
+        //.add_plugins(bevy_framepace::FramepacePlugin) <-- is this necessary?
         .add_state::<AppState>()
         // Plugins for framerate in the console
         //.add_plugins(LogDiagnosticsPlugin::default())
@@ -33,6 +33,7 @@ fn main() {
         // add system for exiting the game
         .add_systems(Update, exit_game)
         // add system for handling the game over state
+        //.add_systems(Update, cap_frame_rate) <-- is this necessary?
         .run();
 }
 

@@ -8,16 +8,16 @@ pub const MARISA_HEALTH: f32 = 100.0;
 pub const MARISA_HURT_OFFSET: Vec3 = Vec3::new(0.0, 0.0, 0.0);
 pub const MARISA_HURT_SIZE: Vec2 = Vec2::new(32.0, 96.0);                               // 2 * 16 , 6 * 16
 pub const MARISA_HURT_DURATION: f32 = 0.15;
-pub const MARISA_HURT_STARTUP: f32 = 0.5;
-pub const MARISA_HURT_ACTIVE: f32 = 0.5;
-pub const MARISA_HURT_COOLDOWN: f32 = 0.5;
+pub const MARISA_HURT_STARTUP: f32 = 0.05;
+pub const MARISA_HURT_ACTIVE: f32 = 0.05;
+pub const MARISA_HURT_COOLDOWN: f32 = 0.05;
 
 pub const MARISA_HURT_CROUCHING_OFFSET: Vec3 = Vec3::new(0.0, 0.0, 0.0);
 pub const MARISA_HURT_CROUCHING_SIZE: Vec2 = Vec2::new(48.0, 80.0);                     // 3 * 16 , 5 * 16
 pub const MARISA_HURT_CROUCHING_DURATION: f32 = 0.167;
-pub const MARISA_HURT_CROUCHING_STARTUP: f32 = 0.5;
-pub const MARISA_HURT_CROUCHING_ACTIVE: f32 = 0.5;
-pub const MARISA_HURT_CROUCHING_COOLDOWN: f32 = 0.67;
+pub const MARISA_HURT_CROUCHING_STARTUP: f32 = 0.05;
+pub const MARISA_HURT_CROUCHING_ACTIVE: f32 = 0.05;
+pub const MARISA_HURT_CROUCHING_COOLDOWN: f32 = 0.067;
 
 // Light
 pub const MARISA_LIGHT_HURT_OFFSET: Vec3 = Vec3::new(24.0, 5.0, 0.0);                 // 1.5 * 16 , 5 

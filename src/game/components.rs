@@ -89,3 +89,20 @@ pub struct  EntityInfo {
     //  proration info
 
 }
+
+
+// Debugger components
+// Add these to a different file? aka debugger_components.rs
+
+#[derive(Component)]
+pub struct DebuggerMenu {}
+
+#[derive(Component)]
+pub struct DrawBoxButton {}
+
+#[derive(Component)]
+pub struct SaveBoxButton {}
+
+
+
+// Debugger components

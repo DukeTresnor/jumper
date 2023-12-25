@@ -76,6 +76,8 @@ pub fn transition_to_main_menu_state(
     }
 }
 
+
+
 pub fn exit_game(
     keyboard_input: Res<Input<KeyCode>>,
     // mutable resource to access the AppExit event writer
@@ -91,3 +93,10 @@ pub fn exit_game(
     }
 }
 
+pub fn cap_frame_rate(
+    //
+    mut settings: ResMut<bevy_framepace::FramepaceSettings>
+) {
+    //
+    settings.limiter = bevy_framepace::Limiter::from_framerate(60.0);
+}
