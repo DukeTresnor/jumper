@@ -1,0 +1,39 @@
+12/25/23
+    my frame advance system takes 6 ticks (ie 6 clicks of Z in the debugger state) to reach
+        the end of the timer within the animate_sprite system.
+    What does this mean?
+
+12/28/23
+    Animate sprites system, using finished vs just_finished gives different behavior inside
+        the terminal --> println calls are occuring on each time I transition with advance_one_frame
+        time.elapsed_seconds_wrapped() tells me the number of seconds that the game has been running
+            when I am calling advance by one frame, the game doesn't ever stop running, "time is still
+            advancing."
+        
+
+    Really need to make everything occuring with frames, not with seconds that then is
+        converted into frames
+
+12/29/23
+    timer.tick(Duration::from_millis(16))
+        this runs the game, same issue as with time.delta()
+        using this makes it take 6 ticks, 6 ticks, 7 ticks for it to advance 1 frame along the animation,
+            probably caused by using a constant 16 milli seconds
+        16 * 19 = 304, split 3 ways is 101.333 -- does this relate to time.delta()?
+    It seems like the timer ticks too slowly, calling timer.tick() 6 times gave a properish behavior,
+        it also froze and wasn't consistant, so I probably want to timer tick using a longer Duration
+        (specifically 6ish times longer?)
+    I've made a little hackneyed edit to the tick call, using delta * a value instead of delta() noramlly.
+        Try doing this change everywhere delta time is called
+
+1/3/24
+    Still working on the timer issue. I have a constant frame rate that I can use -- 0.016789568
+    I also have a constant that's twice this value to test things
+    What I want to be doing is to have the game run int terms of frames, not in terms of seconds, and I want to replace
+        each instance of time.delta() with this constant time. Same thing for time.delta_seconds(), etc.
+    I fixed the timer issue! The problem that I was ticking my animation timer by time.delta(), which is around 16.67ms, but that timer's duration was
+        0.1 seconds! When I changed it to 1 / 60s --> ~16.67ms, my frame advance system for the debugger advances the animation properly.
+    Now the main issue is that I need to really delve deep and make all of the timers consistant
+
+    Next step is to incorporate json into the game I think!
+    Look into the serde_json library

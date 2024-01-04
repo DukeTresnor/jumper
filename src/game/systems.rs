@@ -21,7 +21,7 @@ use crate::game::OVERALL_FRAME_RATE;
 
 use crate::components::*;
 
-use super::player;
+use super::player::components::PlayerNumber;
 use super::player::components::JumpVelocity;
 use super::player::components::Player;
 
@@ -55,6 +55,7 @@ pub fn toggle_simulation_state(
 // Systems that deal with the debugger can go into the debugger_systems module
 // Right now this transition system is in here because it's similar to other systems that
 //   deal with state changing within the game
+// not sure if this is correct
 pub fn transition_to_debugger_state(
     //
     keyboard_input: Res<Input<KeyCode>>,
@@ -67,10 +68,7 @@ pub fn transition_to_debugger_state(
             next_simulation_state.set(SimulationState::Debugger);
             println!("Entering Debugger");
         }
-
     }
-
-    // Temporary
     if keyboard_input.just_pressed(KeyCode::Q) {
         if simulation_state.get() == &SimulationState::Debugger {
             next_simulation_state.set(SimulationState::Running);
@@ -107,12 +105,13 @@ pub fn apply_gravity_and_velocity(
     time: Res<Time>,
 ) {
     for (mut entity_transform, entity_gravity, mut entity_velocity) in transform_gravity_velocity_query.iter_mut() {
-        // refine code, edit out later once you solidify on the constants you want
-        let temp_vel_mod = TEMP_VEL_MOD;
         
         let gravity_direction = Vec3::new(0.0, -entity_gravity.gravity_constant, 0.0);
         let velocity_direction = Vec3::new(entity_velocity.horizontal_velocity, entity_velocity.vertical_velocity, 0.0);
-        entity_transform.translation += temp_vel_mod * velocity_direction * time.delta_seconds() + gravity_direction * time.delta_seconds();
+        entity_transform.translation += TEMP_VEL_MOD * velocity_direction * time.delta_seconds() + gravity_direction * time.delta_seconds();
+        
+
+
         //println!("Applying gravity");
 
         // reduce vertical velocity over time
@@ -202,12 +201,24 @@ pub fn animate_sprite(
         &AnimationIndices, 
         &mut AnimationTimer,
         &mut TextureAtlasSprite,
+        &PlayerNumber,
     )>
 ) {
-    for (animation_indices, mut timer, mut sprite_sheet) in animation_query.iter_mut() {
+    let mut dummy_delta: f64 = time.delta_seconds_f64();
+    dummy_delta *= 1.0;
+    let dummy_duration: Duration = Duration::from_secs_f64(dummy_delta);
+    //println!("dummy_delta: {}", dummy_delta);
+    for (animation_indices, mut timer, mut sprite_sheet, player_number) in animation_query.iter_mut() {
         timer.tick(time.delta());
-        //timer.tick(Duration::from_secs(OVERALL_FRAME_RATE as u64));
-        //println!("{}", time.delta().as_secs_f64());
+
+        // Attempts to fix ticks issue
+        //timer.tick(Duration::from_millis(90));
+        //timer.tick(dummy_duration);
+        //timer.tick(Duration::from_secs_f64(2.0 * 0.016789568));
+
+        //println!("delta: {:?}, delta_seconds: {}", time.delta(), time.delta_seconds());
+
+
         // If the timer is finished, force the sprite sheet to be at
         //   the next sprite in the sheet. If you are at the last sprite in the
         //   sheet, go to the first sprite so it loops
@@ -218,7 +229,8 @@ pub fn animate_sprite(
             sprite_sheet.index = if sprite_sheet.index == animation_indices.last {
                 animation_indices.first
             } else {
-                println!("Sprite Sheet index: {}", sprite_sheet.index);
+
+                //println!("Sprite Sheet index player {}: {}", player_number.player_number, sprite_sheet.index);
                 sprite_sheet.index + 1
             }
         }

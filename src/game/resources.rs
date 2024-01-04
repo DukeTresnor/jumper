@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use std::{collections::HashMap, default};
 
 pub const INPUT_BUFFER_CLEAR_TIME: f32 = 1.0;
-
+pub const DEBUGGER_FRAME_ADVANCE_TIMER: f32 = 1.0 / 60.0;
 
 // Not in use atm
 #[derive(Resource)]
@@ -38,12 +38,14 @@ impl Default for InputBufferTimer {
 #[derive(Resource)]
 pub struct AdvanceOneFrameMode {
     pub should_advance_one_frame: bool,
+    pub frame_timer: Timer,
 }
 
 impl  Default for AdvanceOneFrameMode {
     fn default() -> AdvanceOneFrameMode {
         AdvanceOneFrameMode {
-            should_advance_one_frame: false
+            should_advance_one_frame: false,
+            frame_timer: Timer::from_seconds(DEBUGGER_FRAME_ADVANCE_TIMER, TimerMode::Once),
         }
     }
 }

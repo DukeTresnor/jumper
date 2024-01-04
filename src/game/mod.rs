@@ -34,7 +34,8 @@ use self::resources::{InputBufferTimer, AdvanceOneFrameMode};
 // Constants
 pub const GRAVITY: f32 = 98.1; // meters / second^2
 pub const TILE_SIZE: f32 = 18.0;
-pub const OVERALL_FRAME_RATE: f32 = 1.0 / 60.0; // 1 frame = 1/60 seconds
+pub const OVERALL_FRAME_RATE: f32 = 1.0 / 60.0; // 1 frame = 1/60 seconds --> not sure if I should use this
+
 
 pub struct  GamePlugin;
 
@@ -68,7 +69,7 @@ impl Plugin for GamePlugin {
             //   use run_if() and send in_state(AppState::Game) into it
             .add_systems(Update, toggle_simulation_state.run_if(in_state(AppState::Game)))
             .add_systems(Update, transition_to_debugger_state.run_if(in_state(AppState::Game)))
-            .add_systems(Update, temp_advance_one_frame.run_if(in_state(AppState::Game)))
+            .add_systems(Update, advance_one_frame.run_if(in_state(AppState::Game)))
             .add_systems(OnExit(AppState::Game), despawn_floor)
             // Add resume_simulation system to the OnExit schedule
             // When you exit the game state, set simulation state to running (ie the default state)

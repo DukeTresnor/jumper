@@ -347,7 +347,7 @@ pub const MARISA_HURT_COOLDOWN: f32 = 0.5;
                 negative_edge_vector: Vec::new()
             },
             animation_indices,
-            AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
+            AnimationTimer(Timer::from_seconds(1.0 / 60.0, TimerMode::Repeating)), // should be 1/60
             PlayerInput {
                 up: false,
                 down: false,
@@ -508,7 +508,7 @@ pub const MARISA_HURT_COOLDOWN: f32 = 0.5;
                 negative_edge_vector: Vec::new()
             },
             animation_indices_second,
-            AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
+            AnimationTimer(Timer::from_seconds(1.0 / 60.0, TimerMode::Repeating)),
             PlayerInput {
                 up: false,
                 down: false,
@@ -1491,51 +1491,54 @@ pub fn hitbox_state_handler (
         // I feel like this can be done a better way
         // Loop through each collision box in the player's collision vector inside the CollisionInfo component
         for collision_box in collision_info.collision_vector.iter_mut() {
+            if !collision_box.active {
 
-            // If the player is idle or walking, and if the collision box is Hurt and it's not active
-            //    when you're jumping i think you can still just use the hurt box for being idle
-            if !movement_state.is_crouching && !movement_state.is_dashing && collision_box.box_type == BoxType::Hurt && !collision_box.active{
-                //
 
-                collision_box.active = true;
-                collision_box.lifespan.reset()
-            }
+                // Instead of using if statements, use a switch statement
+                // If the player is idle or walking, and if the collision box is Hurt and it's not active
+                //    when you're jumping i think you can still just use the hurt box for being idle
+                if !movement_state.is_crouching && !movement_state.is_dashing && collision_box.box_type == BoxType::Hurt {
+                    //
 
-            if movement_state.is_crouching && collision_box.box_type == BoxType::HurtCrouching && !collision_box.active {
-                collision_box.active = true;
-                collision_box.lifespan.reset()
-            }
-
-            // this might need to be if _not_ attack_state.is_attacking
-            if attack_state.is_attacking {
-                // if light hit
-                if player_input.light && !player_input.down && collision_box.box_type == BoxType::LightHit && !collision_box.active {
                     collision_box.active = true;
-                    collision_box.lifespan.reset();
-                    println!("did this happen? -----------------------------------------------------------");
+                    collision_box.lifespan.reset()
                 }
 
-                // if light hurt
-
-                // if light crouching hit
-                if player_input.light && player_input.down && collision_box.box_type == BoxType::LightHitCrouching && !collision_box.active {
+                if movement_state.is_crouching && collision_box.box_type == BoxType::HurtCrouching {
                     collision_box.active = true;
-                    collision_box.lifespan.reset();
+                    collision_box.lifespan.reset()
                 }
 
-                // if light crouching hurt
+                // this might need to be if _not_ attack_state.is_attacking
+                if attack_state.is_attacking {
+                    // if light hit
+                    if player_input.light && !player_input.down && collision_box.box_type == BoxType::LightHit {
+                        collision_box.active = true;
+                        collision_box.lifespan.reset();
+                        println!("did this happen? -----------------------------------------------------------");
+                    }
+
+                    // if light hurt
+
+                    // if light crouching hit
+                    if player_input.light && player_input.down && collision_box.box_type == BoxType::LightHitCrouching {
+                        collision_box.active = true;
+                        collision_box.lifespan.reset();
+                    }
+
+                    // if light crouching hurt
 
 
+                }
+
+                collision_box.lifespan.tick(time.delta());
 
 
+                if collision_box.lifespan.finished() {
+                    collision_box.active = false;
+                }
             }
 
-            collision_box.lifespan.tick(time.delta());
-
-
-            if collision_box.lifespan.finished() {
-                collision_box.active = false;
-            }
         }
 
     }
@@ -1612,7 +1615,7 @@ pub fn collision_handler(
                                 );
                                 if let Some(potential_collision) = potential_collision {
                                     
-                                    // Send data along with a specific event type
+                                    // Send data along with a specific event
                                     if collision_box_one.hurt_hit == HurtHit::Hurtbox && collision_box_two.hurt_hit == HurtHit::Hurtbox {
                                         // Send push event
                                         println!("Pushing");
@@ -2004,6 +2007,8 @@ pub fn populate_player_action_vector(
             // clear the player's action state vector
             //player_action_state_vector.action_vector.clear();
 
+            
+
             // If the input buffer has elements, remove the 0th element (the one added last)
             if !player_action_state_vector.action_vector.is_empty() {
                 player_action_state_vector.action_vector.remove(0);
@@ -2055,11 +2060,11 @@ pub fn testing_new_input_system(
         player_inputs.down = keyboard_input.pressed(player_keybinds.down_bind);
         player_inputs.left = keyboard_input.pressed(player_keybinds.left_bind);
         player_inputs.right = keyboard_input.pressed(player_keybinds.right_bind);
-        player_inputs.light = keyboard_input.pressed(player_keybinds.light_bind);
-        player_inputs.medium = keyboard_input.pressed(player_keybinds.medium_bind);
-        player_inputs.heavy = keyboard_input.pressed(player_keybinds.heavy_bind);
-        player_inputs.unique = keyboard_input.pressed(player_keybinds.unique_bind);
-        player_inputs.special = keyboard_input.pressed(player_keybinds.special_bind);
+        player_inputs.light = keyboard_input.just_pressed(player_keybinds.light_bind);
+        player_inputs.medium = keyboard_input.just_pressed(player_keybinds.medium_bind);
+        player_inputs.heavy = keyboard_input.just_pressed(player_keybinds.heavy_bind);
+        player_inputs.unique = keyboard_input.just_pressed(player_keybinds.unique_bind);
+        player_inputs.special = keyboard_input.just_pressed(player_keybinds.special_bind);
         /* 
         println!("player_inputs: {}", player_inputs.up);
         println!("player_inputs: {}", player_inputs.down);
